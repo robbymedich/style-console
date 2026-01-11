@@ -7,7 +7,13 @@
   "repository": {
     "url": "https://github.com/robbymedich/style-console"
   },
-  "keywords": ["error", "exception", "catch", "logging", "parsing"],
+  "keywords": [
+    "error",
+    "exception",
+    "catch",
+    "logging",
+    "parsing"
+  ],
   "type": "module",
   "main": "./dist/src/index.js",
   "types": "./dist/src/index.d.ts",
