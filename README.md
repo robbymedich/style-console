@@ -1,4 +1,4 @@
-# my-bun-lib
+# style-console
 
 Allow for easy styling of the console output (supports terminal colors)
 for JavaScript and TypeScript libraries.
