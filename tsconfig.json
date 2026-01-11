@@ -1,0 +1,52 @@
+/***** Visit https://aka.ms/tsconfig to read more about this file *****/
+{
+  "compilerOptions": {
+    /************************* Choose Version *************************/
+    "target": "es2023", // set to lowest modern version you can
+    "lib": ["ES2023"], // may need to add, ex. "DOM"/"DOM.Iterable"
+
+    /************************* Bundle & Emit  *************************/
+    // If creating a library to publish
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "outDir": "./dist",
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true,
+    "incremental": true,
+    // // If using a bundler
+    // "module": "ESNext",
+    // "moduleResolution": "bundler",
+    // "noEmit": true,
+    // "allowImportingTsExtensions": true,
+
+    /************************ Module & Import  ************************/
+    "moduleDetection": "force",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "verbatimModuleSyntax": true,
+    "resolvePackageJsonImports": true,
+    "resolvePackageJsonExports": true,
+    "isolatedModules": true,
+
+    /*************************** Strictness ***************************/
+    "strict": true,
+    "noImplicitReturns": true, // consistent-return in eslint
+    "noImplicitThis": true, // no-invalid-this in eslint
+    "noImplicitAny": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUncheckedIndexedAccess": true,
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true,
+    "useUnknownInCatchVariables": true,
+
+    /***************************** Other  *****************************/
+    // // control if package can mix .ts and .js files
+    // "allowJs": true,
+    // "checkJs": true,
+    "skipLibCheck": true,
+    "types": []
+  },
+  "include": ["src/**/*"] // "tests/**/*"
+}

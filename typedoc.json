@@ -1,0 +1,20 @@
+// https://typedoc.org/documents/Options.Input.html
+{
+  "entryPoints": ["src"],
+  "entryPointStrategy": "resolve", // use "expand" for applications
+  "tsconfig": "tsconfig.json",
+
+  "out": "docs",
+  "cleanOutputDir": true,
+
+  // visibility filters
+  "excludeExternals": true,
+  "excludePrivate": true,
+  "excludePrivateClassFields": true,
+  "excludeProtected": false,
+  "excludeInternal": false,
+
+  // Documentation quality
+  "includeVersion": true,
+  "categorizeByGroup": true
+}

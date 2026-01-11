@@ -1,0 +1,15 @@
+{
+  "semi": false,
+  "singleQuote": true,
+  "jsxSingleQuote": true,
+  "quoteProps": "consistent",
+  "overrides": [
+    {
+      "files": ["*.ts", "*.js", "*.mjs"],
+      "options": {
+        "tabWidth": 4
+      }
+    }
+  ],
+  "trailingComma": "all"
+}
