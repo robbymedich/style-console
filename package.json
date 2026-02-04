@@ -44,6 +44,7 @@
   "scripts": {
     "test": "bun test",
     "build": "bun x tsc",
+    "watch": "bun x tsc --watch",
     "lint": "bun x eslint .",
     "format": "bun x prettier . --write",
     "doc": "bun x typedoc",
