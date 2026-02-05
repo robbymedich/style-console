@@ -82,14 +82,13 @@ export function dedent(text: string, dedentPrefix?: string): string {
         const line = reMatch.groups!['line']!
 
         if (
-            fullLineText !== '\n' &&
+            (line !== '' && line !== '\n') &&
             (minIndent === null || indent.length < minIndent.length)
         ) {
             minIndent = indent
         }
         indentLines.push(indent)
         textLines.push(line)
-        // console.log({fullLineText, indent, line})
     }
 
     let indentStart

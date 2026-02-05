@@ -87,5 +87,11 @@ describe('dedent', () => {
         expect(dedent('    hello\n\n\n    world')).toBe(
             'hello\n\n\nworld',
         )
+        // indent only lines with less than main indent
+        expect(dedent(`
+            Hello there,
+            my name
+            is Robby
+        `)).toBe('\nHello there,\nmy name\nis Robby\n')
     })
 })
