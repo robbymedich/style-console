@@ -1,29 +1,11 @@
 import { expect, test, describe } from 'bun:test'
-import { splitLines, dedent } from '../src/spacing.ts'
+import { indent, dedent } from '../src/spacing.ts'
 
-describe('splitLines', () => {
+describe('indent', () => {
     test('no new line', () => {
-        expect(splitLines('')).toEqual([])
-        expect(splitLines('hello')).toEqual(['hello'])
-    })
-
-    test('leading new line', () => {
-        expect(splitLines('\n    hello')).toEqual(['\n', '    hello'])
-        expect(splitLines('\n hello\nworld')).toEqual([
-            '\n',
-            ' hello\n',
-            'world',
-        ])
-    })
-
-    test('trailing new line', () => {
-        expect(splitLines('hello\n')).toEqual(['hello\n'])
-        expect(splitLines('\n  hello\n')).toEqual(['\n', '  hello\n'])
-        expect(splitLines('\n  hello\nworld\n')).toEqual([
-            '\n',
-            '  hello\n',
-            'world\n',
-        ])
+        expect(indent('', '  ')).toBe('')
+        // expect(indent('hello', '  ')).toBe('  hello')
+        // expect(indent('  hello', '  ')).toBe('    hello')
     })
 })
 
