@@ -2,10 +2,55 @@ import { expect, test, describe } from 'bun:test'
 import { indent, dedent } from '../src/spacing.ts'
 
 describe('indent', () => {
+    test('no indentWith', () => {
+        expect(indent('', '')).toBe('')
+        expect(indent('hello', '')).toBe('hello')
+        expect(indent('\nhello', '')).toBe('\nhello')
+        expect(indent('hello\n', '')).toBe('hello\n')
+        expect(indent('hello  \n', '')).toBe('hello  \n')
+        expect(indent('  hello\n', '')).toBe('  hello\n')
+        expect(indent('hello\n  ', '')).toBe('hello\n  ')
+    })
+
     test('no new line', () => {
         expect(indent('', '  ')).toBe('')
-        // expect(indent('hello', '  ')).toBe('  hello')
-        // expect(indent('  hello', '  ')).toBe('    hello')
+        expect(indent('hello', '  ')).toBe('  hello')
+        expect(indent('  hello', '  ')).toBe('    hello')
+        expect(indent('  hello  ', '  ')).toBe('    hello  '  )
+    })
+
+    test('single new line', () => {
+        expect(indent('\n', '  ')).toBe('\n')
+        expect(indent('\nhello', '')).toBe('\nhello')
+        expect(dedent('\n    hello')).toBe('\nhello')
+        expect(dedent('    hello\n')).toBe('hello\n')
+        expect(indent('hello\n', '')).toBe('hello\n')
+        expect(indent('hello  \n', '')).toBe('hello  \n')
+        expect(indent('  hello\n', '')).toBe('  hello\n')
+        expect(indent('hello\n  ', '')).toBe('hello\n  ')
+    })
+
+    test('multiple new line', () => {
+        // only new lines
+        expect(indent('\n\n', '  ')).toBe('\n\n')
+
+        //  no spaces
+        expect(indent('\nhello\nworld', '  ')).toBe('\n  hello\n  world')
+        expect(indent('hello\nworld', '  ')).toBe('  hello\n  world')
+        expect(indent('hello\nworld\n', '  ')).toBe('  hello\n  world\n')
+        expect(indent('\nhello\nworld\n', '  ')).toBe('\n  hello\n  world\n')
+
+        // extra indent
+        expect(indent('  hello\nworld\n', '  ')).toBe('    hello\n  world\n')
+        expect(indent('hello\n  world\n', '  ')).toBe('  hello\n    world\n')
+
+        // extra newlines
+        expect(indent('\nhello\n\n\nworld\n', '  ')).toBe(
+            '\n  hello\n\n\n  world\n',
+        )
+        expect(indent('\n  hello\n\n\n  world\n', '  ')).toBe(
+            '\n    hello\n\n\n    world\n',
+        )
     })
 })
 
@@ -14,12 +59,17 @@ describe('dedent', () => {
         expect(dedent('')).toBe('')
         expect(dedent('hello')).toBe('hello')
         expect(dedent('    hello')).toBe('hello')
+        expect(dedent('    hello  ')).toBe('hello  '  )
     })
 
     test('single new line', () => {
         expect(dedent('\n')).toBe('\n')
         expect(dedent('\nhello')).toBe('\nhello')
         expect(dedent('\n    hello')).toBe('\nhello')
+        expect(dedent('hello\n')).toBe('hello\n')
+        expect(dedent('    hello\n')).toBe('hello\n')
+        expect(dedent('    hello  \n')).toBe('hello  \n')
+        expect(dedent('    hello  \n  ')).toBe('hello  \n')
     })
 
     test('multiple new line', () => {

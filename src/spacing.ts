@@ -1,31 +1,33 @@
-const leadingWhitespace = /\n{0,1}(?<indent>\s*)(?<line>.*)/g
-const isWhitespace = /^\s+$/
-
-// export function indent(text: string, indentWith: string): string {
-//     if (indentWith === '') {
-//         return text
-//     }
-//     const prefix = text.startsWith('\n') ? '' : indentWith
-//     const indentedText = prefix + text.split('\n').join(`\n${indentWith}`)
-//     return text.endsWith('\n')
-//         ? indentedText.slice(0, indentedText.length - indentWith.length)
-//         : indentedText
-// }
+const SPLIT_LINE = /(?<indent>[^\S\n]*)(?<line>.*\n{0,1})/g
 
 export function indent(text: string, indentWith: string): string {
     if (indentWith === '') {
         return text
     }
-    return text.split('\n').join(`\n${indentWith}`)
+    SPLIT_LINE.lastIndex = 0
+    const cleaned = []
+
+    for (const reMatch of text.matchAll(SPLIT_LINE)) {
+        const indent = reMatch.groups!['indent']!
+        const line = reMatch.groups!['line']!
+
+        if (line !== '' && line !== '\n') {
+            cleaned.push(indentWith)
+        }
+        cleaned.push(indent)
+        cleaned.push(line)
+    }
+
+    return cleaned.join('')
 }
 
 export function dedent(text: string, dedentPrefix?: string): string {
-    const splitLine = /(?<indent>[^\S\n]*)(?<line>.*\n{0,1})/g
-    const indentLines = []
-    const textLines = []
+    SPLIT_LINE.lastIndex = 0
+    const indentParts = []
+    const lineParts = []
     let minIndent: string | null = null
 
-    for (const reMatch of text.matchAll(splitLine)) {
+    for (const reMatch of text.matchAll(SPLIT_LINE)) {
         const indent = reMatch.groups!['indent']!
         const line = reMatch.groups!['line']!
 
@@ -35,8 +37,8 @@ export function dedent(text: string, dedentPrefix?: string): string {
         ) {
             minIndent = indent
         }
-        indentLines.push(indent)
-        textLines.push(line)
+        indentParts.push(indent)
+        lineParts.push(line)
     }
 
     let indentStart
@@ -50,14 +52,15 @@ export function dedent(text: string, dedentPrefix?: string): string {
     } else {
         indentStart = dedentPrefix.length
     }
-    const cleanedLines = []
+    const cleaned = []
 
-    for (let ix = 0; ix < textLines.length; ix++) {
-        const indent = indentLines[ix]!
-        const line = textLines[ix]!
+    for (let ix = 0; ix < lineParts.length; ix++) {
+        const indent = indentParts[ix]!
+        const line = lineParts[ix]!
 
-        cleanedLines.push(`${indent.slice(indentStart)}${line}`)
+        cleaned.push(indent.slice(indentStart))
+        cleaned.push(line)
     }
 
-    return cleanedLines.join('')
+    return cleaned.join('')
 }
