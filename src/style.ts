@@ -14,10 +14,11 @@ export function getDefaultIndent(): string {
     return DEFAULT_INDENT
 }
 
-function getIndentPrefix(indent: string | number): string {
+export function getIndentPrefix(indent: string | number): string {
     return typeof indent === 'string' ? indent : DEFAULT_INDENT.repeat(indent)
 }
 
+// TODO: calculate setters everytime Style is Modified...
 export class Style {
     #style: FontStyle[] = []
     #color?: Color
@@ -27,7 +28,7 @@ export class Style {
     constructor(
         textColor?: Color,
         backgroundColor?: Color,
-        styleModifier?: FontStyle,
+        fontStyle?: FontStyle,
     ) {
         if (textColor !== undefined) {
             this.color(textColor)
@@ -35,8 +36,8 @@ export class Style {
         if (backgroundColor !== undefined) {
             this.background(backgroundColor)
         }
-        if (styleModifier !== undefined) {
-            this.fontStyle(styleModifier)
+        if (fontStyle !== undefined) {
+            this.fontStyle(fontStyle)
         }
     }
 
@@ -73,7 +74,7 @@ export class Style {
     }
 
     getStyleSetters(): { setStyle: string; unsetStyle: string } {
-        // check if terminal supports colors
+        // TODO: check if terminal supports colors
         const setStyle: string[] = []
         const unsetStyle: string[] = []
 
@@ -112,45 +113,32 @@ export class Style {
     }
 }
 
-class LazyStyledText {
+export class LazyStyledText {
     constructor(
         public unmodified: string,
-        public applyStyle: boolean,
-        public style: Style,
-        public applyIndent: boolean,
-        public indent: string | number,
+        public style?: Style,
+        public indent?: string,
     ) {}
 
     getStyledText(): string {
-        const indentPrefix = this.applyIndent ? this.indent : ''
-        if (this.applyStyle) {
-            return this.style.getStyledText(this.unmodified, indentPrefix)
+        if (this.style === undefined) {
+            if (this.indent === undefined) {
+                return this.unmodified
+            }
+            return indentText(this.unmodified, this.indent)
         }
-        return indentText(this.unmodified, getIndentPrefix(indentPrefix))
+        return this.style.getStyledText(this.unmodified, this.indent)
     }
 }
 
 export class StyledText {
     #style: Style
-    #indent: string | number = ''
+    #indent: string | number
     #parts: LazyStyledText[] = []
 
-    constructor(style?: Style, text?: string, indent?: string | number) {
+    constructor(style?: Style, indent?: string | number) {
         this.#style = style === undefined ? new Style() : style
-        if (indent !== undefined) {
-            this.indent(indent)
-        }
-        if (text !== undefined) {
-            this.text(text)
-        }
-    }
-
-    getStyle(): Style {
-        return this.#style
-    }
-
-    getIndent(): string {
-        return getIndentPrefix(this.#indent)
+        this.#indent = indent === undefined ? '' : indent
     }
 
     style(value: Style): typeof this {
@@ -158,42 +146,58 @@ export class StyledText {
         return this
     }
 
+    getCurrentStyle(): Style {
+        return this.#style
+    }
+
     indent(value: string | number): typeof this {
         this.#indent = value
         return this
     }
 
-    newLine(applyStyle = false, applyIndent = true): typeof this {
-        let value = '\n'
-        if (applyIndent) {
-            value += this.getIndent()
-        }
-        return this.text(value, applyStyle, false)
+    getCurrentIndent(): string {
+        return getIndentPrefix(this.#indent)
+    }
+
+    newLine(): typeof this {
+        return this.text('\n', { applyIndent: false, applyStyle: false })
     }
 
     text(
         value: string,
-        applyStyle = true,
-        applyIndent: boolean | undefined = undefined,
+        options?: {
+            applyStyle?: boolean
+            style?: Style
+            applyIndent?: boolean
+        },
     ): typeof this {
         if (value === '') {
             return this
         }
-        let calculatedApplyIndent
-        if (applyIndent === undefined) {
-            calculatedApplyIndent = value.startsWith('\n')
-        } else {
-            calculatedApplyIndent = applyIndent
+        let resetStyle: Style | undefined
+        if (options?.style !== undefined && options.applyStyle !== false) {
+            resetStyle = this.#style
+            this.style(options.style)
         }
+        let calculatedApplyIndent
+        if (options?.applyIndent === undefined) {
+            const prior = this.#parts[this.#parts.length - 1]
+            calculatedApplyIndent = prior?.unmodified.endsWith('\n') ?? false
+        } else {
+            calculatedApplyIndent = options.applyIndent
+        }
+
         this.#parts.push(
             new LazyStyledText(
                 value,
-                applyStyle,
-                this.#style,
-                calculatedApplyIndent,
-                this.#indent,
+                options?.applyStyle === false ? undefined : this.#style,
+                calculatedApplyIndent ? this.getCurrentIndent() : undefined,
             ),
         )
+
+        if (resetStyle !== undefined) {
+            this.style(resetStyle)
+        }
         return this
     }
 
@@ -211,9 +215,7 @@ export class StyledText {
             const priorPart = consolidatedParts[consolidatedParts.length - 1]
             if (
                 priorPart !== undefined &&
-                priorPart.applyStyle === currentPart.applyStyle &&
                 priorPart.style === currentPart.style &&
-                priorPart.applyIndent === currentPart.applyIndent &&
                 priorPart.indent === currentPart.indent
             ) {
                 priorPart.unmodified += currentPart.unmodified

@@ -16,7 +16,7 @@ describe('indent', () => {
         expect(indent('', '  ')).toBe('')
         expect(indent('hello', '  ')).toBe('  hello')
         expect(indent('  hello', '  ')).toBe('    hello')
-        expect(indent('  hello  ', '  ')).toBe('    hello  '  )
+        expect(indent('  hello  ', '  ')).toBe('    hello  ')
     })
 
     test('single new line', () => {
@@ -59,7 +59,7 @@ describe('dedent', () => {
         expect(dedent('')).toBe('')
         expect(dedent('hello')).toBe('hello')
         expect(dedent('    hello')).toBe('hello')
-        expect(dedent('    hello  ')).toBe('hello  '  )
+        expect(dedent('    hello  ')).toBe('hello  ')
     })
 
     test('single new line', () => {
@@ -113,17 +113,15 @@ describe('dedent', () => {
         expect(dedent('\n    hello\n\n\n    world\n')).toBe(
             '\nhello\n\n\nworld\n',
         )
-        expect(dedent('    hello\n\n\n    world\n')).toBe(
-            'hello\n\n\nworld\n',
-        )
-        expect(dedent('    hello\n\n\n    world')).toBe(
-            'hello\n\n\nworld',
-        )
+        expect(dedent('    hello\n\n\n    world\n')).toBe('hello\n\n\nworld\n')
+        expect(dedent('    hello\n\n\n    world')).toBe('hello\n\n\nworld')
         // indent only lines with less than main indent
-        expect(dedent(`
+        expect(
+            dedent(`
             Hello there,
             my name
             is Robby
-        `)).toBe('\nHello there,\nmy name\nis Robby\n')
+        `),
+        ).toBe('\nHello there,\nmy name\nis Robby\n')
     })
 })

@@ -32,7 +32,8 @@ export function dedent(text: string, dedentPrefix?: string): string {
         const line = reMatch.groups!['line']!
 
         if (
-            (line !== '' && line !== '\n') &&
+            line !== '' &&
+            line !== '\n' &&
             (minIndent === null || indent.length < minIndent.length)
         ) {
             minIndent = indent
@@ -42,7 +43,7 @@ export function dedent(text: string, dedentPrefix?: string): string {
     }
 
     let indentStart
-    if (minIndent == null) {
+    if (minIndent === null) {
         indentStart = 0
     } else if (
         typeof dedentPrefix !== 'string' ||
