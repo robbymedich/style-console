@@ -26,11 +26,13 @@ export class Style {
     #textColor?: Color
     #backgroundColor?: Color
 
-    constructor(options: {
-        textColor?: Color,
-        backgroundColor?: Color,
-        fontStyle?: FontStyle[] | FontStyle,
-    } = {}) {
+    constructor(
+        options: {
+            textColor?: Color
+            backgroundColor?: Color
+            fontStyle?: FontStyle[] | FontStyle
+        } = {},
+    ) {
         if (options.textColor !== undefined) {
             this.textColor(options.textColor)
         }
@@ -144,9 +146,10 @@ export class LazyStyledText {
     ) {}
 
     getStyledText(): string {
-        const text = this.indent === undefined
-            ? this.unmodified
-            : indentText(this.unmodified, this.indent)
+        const text =
+            this.indent === undefined
+                ? this.unmodified
+                : indentText(this.unmodified, this.indent)
         if (this.style === undefined) {
             return text
         }
