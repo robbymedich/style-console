@@ -18,78 +18,104 @@ export function getIndentPrefix(indent: string | number): string {
     return typeof indent === 'string' ? indent : DEFAULT_INDENT.repeat(indent)
 }
 
+export type StyleType = 'textColor' | 'backgroundColor' | 'fontStyle' | 'all'
+
 // TODO: calculate setters everytime Style is Modified...
 export class Style {
-    #style: FontStyle[] = []
-    #color?: Color
-    #background?: Color
-    #reset = false
+    #fontStyle: FontStyle[] = []
+    #textColor?: Color
+    #backgroundColor?: Color
 
-    constructor(
+    constructor(options: {
         textColor?: Color,
         backgroundColor?: Color,
-        fontStyle?: FontStyle,
-    ) {
-        if (textColor !== undefined) {
-            this.color(textColor)
+        fontStyle?: FontStyle[] | FontStyle,
+    } = {}) {
+        if (options.textColor !== undefined) {
+            this.textColor(options.textColor)
         }
-        if (backgroundColor !== undefined) {
-            this.background(backgroundColor)
+        if (options.backgroundColor !== undefined) {
+            this.backgroundColor(options.backgroundColor)
         }
-        if (fontStyle !== undefined) {
-            this.fontStyle(fontStyle)
+        if (options.fontStyle !== undefined) {
+            const styles = Array.isArray(options.fontStyle)
+                ? options.fontStyle
+                : [options.fontStyle]
+            this.fontStyle(...styles)
         }
     }
 
-    color(textColor: Color): typeof this {
-        this.#color = textColor
+    textColor(color: Color): typeof this {
+        this.#textColor = color
         return this
     }
 
-    getColor(): Color | undefined {
-        return this.#color
+    getTextColor(): Color | undefined {
+        return this.#textColor
     }
 
-    background(backgroundColor: Color): typeof this {
-        this.#background = backgroundColor
+    backgroundColor(color: Color): typeof this {
+        this.#backgroundColor = color
         return this
     }
 
-    getBackground(): Color | undefined {
-        return this.#background
+    getBackgroundColor(): Color | undefined {
+        return this.#backgroundColor
     }
 
-    fontStyle(modifier: FontStyle): typeof this {
-        this.#style.push(modifier)
+    fontStyle(...modifiers: FontStyle[]): typeof this {
+        if (modifiers.length === 0) {
+            throw new Error('font style modifiers cannot be empty')
+        }
+        this.#fontStyle = []
+        for (const modifier of modifiers) {
+            this.#fontStyle.push(modifier)
+        }
         return this
     }
 
     getFontStyle(): FontStyle[] {
-        return this.#reset ? [] : this.#style
+        return this.#fontStyle
     }
 
-    reset(): typeof this {
-        this.#reset = true
+    reset(...options: StyleType[]): typeof this {
+        if (options.length === 0) {
+            options.push('all')
+        }
+        for (const styleType of options) {
+            if (styleType === 'all') {
+                this.#fontStyle = []
+                this.#backgroundColor = undefined
+                this.#textColor = undefined
+            } else if (styleType === 'backgroundColor') {
+                this.#backgroundColor = undefined
+            } else if (styleType === 'textColor') {
+                this.#textColor = undefined
+            } else if (styleType === 'fontStyle') {
+                this.#fontStyle = []
+            } else {
+                throw new Error('cannot reset a style type that does not exist')
+            }
+        }
         return this
     }
 
     getStyleSetters(): { setStyle: string; unsetStyle: string } {
-        // TODO: check if terminal supports colors
         const setStyle: string[] = []
         const unsetStyle: string[] = []
 
-        if (this.#color !== undefined) {
-            const styleOption = colors[this.#color].text
+        if (this.#textColor !== undefined) {
+            const styleOption = colors[this.#textColor].text
             setStyle.push(styleOption.set)
             unsetStyle.push(styleOption.unset)
         }
-        if (this.#background !== undefined) {
-            const styleOption = colors[this.#background].background
+        if (this.#backgroundColor !== undefined) {
+            const styleOption = colors[this.#backgroundColor].background
             setStyle.push(styleOption.set)
             unsetStyle.push(styleOption.unset)
         }
-        if (!this.#reset && this.#style.length !== 0) {
-            for (const style of this.#style) {
+        if (this.#fontStyle.length !== 0) {
+            for (const style of this.#fontStyle) {
                 const styleOption = textModifiers[style]
                 setStyle.push(styleOption.set)
                 unsetStyle.push(styleOption.unset)
@@ -103,13 +129,10 @@ export class Style {
         }
     }
 
-    getStyledText(text: string, indent: string | number = ''): string {
+    getStyledText(text: string): string {
+        // TODO: check if terminal supports colors
         const { setStyle, unsetStyle } = this.getStyleSetters()
-
-        const indentPrefix = getIndentPrefix(indent)
-        const indentedText = indentText(text, indentPrefix)
-
-        return `${setStyle}${indentedText}${unsetStyle}`
+        return `${setStyle}${text}${unsetStyle}`
     }
 }
 
@@ -121,13 +144,13 @@ export class LazyStyledText {
     ) {}
 
     getStyledText(): string {
+        const text = this.indent === undefined
+            ? this.unmodified
+            : indentText(this.unmodified, this.indent)
         if (this.style === undefined) {
-            if (this.indent === undefined) {
-                return this.unmodified
-            }
-            return indentText(this.unmodified, this.indent)
+            return text
         }
-        return this.style.getStyledText(this.unmodified, this.indent)
+        return this.style.getStyledText(text)
     }
 }
 
@@ -229,14 +252,14 @@ export class StyledText {
 }
 
 export const style = {
-    color: (textColor: Color): Style => {
-        return new Style(textColor)
+    color: (color: Color): Style => {
+        return new Style({ textColor: color })
     },
-    background: (backgroundColor: Color): Style => {
-        return new Style(undefined, backgroundColor)
+    background: (color: Color): Style => {
+        return new Style({ backgroundColor: color })
     },
-    fontStyle: (modifier: FontStyle): Style => {
-        return new Style(undefined, undefined, modifier)
+    fontStyle: (...modifiers: FontStyle[]): Style => {
+        return new Style({ fontStyle: modifiers })
     },
     default: (): Style => {
         return new Style()

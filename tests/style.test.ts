@@ -8,48 +8,75 @@ import {
     style,
 } from '../src/style.ts'
 
-describe('quick', () => {
-    test('hi', () => {
-        const theme = {
-            default: style.default(),
-            red: style.color('red'),
-            bold: style.fontStyle('bold'),
-        }
-        console.log('')
+test('default indent', () => {
+    expect(getDefaultIndent()).toBe('    ')
+    setDefaultIndent('  ')
+    expect(getDefaultIndent()).toBe('  ')
+    setDefaultIndent('    ')
+    expect(getDefaultIndent()).toBe('    ')
+})
 
-        const out1 = new StyledText(theme.default)
-            .text('this is ')
-            .style(theme.red)
-            .text('red')
-            .style(theme.default)
-            .text('.')
-            .newLine()
-            .toString()
-        console.log(out1)
+describe('Style class', () => {
+    test('no style', () => {
+        const empty = new Style()
+        expect(empty.getBackgroundColor()).toBe(undefined)
+        expect(empty.getTextColor()).toBe(undefined)
+        expect(empty.getFontStyle()).toEqual([])
+        expect(empty.getStyledText('hello')).toBe('hello')
+        expect(empty.getStyleSetters()).toEqual({ setStyle: '', unsetStyle: '' })
+    })
 
-        const out2 = new StyledText(theme.default)
-            .text('this is ')
-            .text('red', { style: theme.red })
-            .text('.')
-            .newLine()
-            .toString()
-        console.log(out2)
+    test('style setter(s) and getter(s)', () => {
+        let myStyle = new Style({
+            textColor: 'red',
+            backgroundColor: 'blue',
+            fontStyle: 'bold',
+        })
+        expect(myStyle.getBackgroundColor()).toEqual('blue')
+        expect(myStyle.getTextColor()).toEqual('red')
+        expect(myStyle.getFontStyle()).toEqual(['bold'])
 
-        const out3 = new StyledText(theme.default)
-            .text('and this is... ')
-            .style(theme.bold)
-            .text('bold')
-            .style(theme.default)
-            .text('.')
-            .newLine()
-            .toString()
-        console.log(out3)
+        myStyle.backgroundColor('magentaBright')
+        expect(myStyle.getBackgroundColor()).toBe('magentaBright')
+        myStyle.reset('backgroundColor')
+        expect(myStyle.getBackgroundColor()).toEqual(undefined)
 
-        const out4 = new StyledText(theme.default)
-            .text('hi')
-            .text('\nwith background', { style: style.background('blue') })
-            .text('\nhello')
-            .toString()
-        console.log(out4)
+        myStyle.textColor('black')
+        expect(myStyle.getTextColor()).toBe('black')
+        myStyle.reset('textColor')
+        expect(myStyle.getTextColor()).toEqual(undefined)
+
+        myStyle.fontStyle('bold', 'italic')
+        expect(myStyle.getFontStyle()).toEqual(['bold', 'italic'])
+        myStyle.reset('fontStyle')
+        expect(myStyle.getFontStyle()).toEqual([])
+        myStyle.fontStyle('strikethrough')
+        expect(myStyle.getFontStyle()).toEqual(['strikethrough'])
+
+        myStyle = new Style({
+            textColor: 'black',
+            backgroundColor: 'white',
+            fontStyle: ['bold', 'italic']
+        })
+        expect(myStyle).toEqual(
+            new Style()
+                .textColor('black')
+                .backgroundColor('white')
+                .fontStyle('bold', 'italic')
+        )
+        myStyle.reset('all')
+        expect(myStyle.getBackgroundColor()).toBe(undefined)
+        expect(myStyle.getTextColor()).toBe(undefined)
+        expect(myStyle.getFontStyle()).toEqual([])
+
+        myStyle = new Style({
+            textColor: 'black',
+            backgroundColor: 'white',
+            fontStyle: ['bold', 'italic']
+        })
+        myStyle.reset()
+        expect(myStyle.getBackgroundColor()).toBe(undefined)
+        expect(myStyle.getTextColor()).toBe(undefined)
+        expect(myStyle.getFontStyle()).toEqual([])
     })
 })
