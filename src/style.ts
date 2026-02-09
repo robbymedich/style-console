@@ -2,7 +2,7 @@ import type { Color } from './colors.js'
 import type { FontStyle } from './modifiers.js'
 import { colors } from './colors.js'
 import { textModifiers } from './modifiers.js'
-import { indent as indentText } from './spacing.js'
+import { indent as indentText, dedent as dedentText } from './spacing.js'
 
 let DEFAULT_INDENT = '    '
 
@@ -147,17 +147,21 @@ export class LazyStyledText {
         public unmodified: string,
         public style?: Style,
         public indent?: string,
+        public dedent: boolean = false,
     ) {}
 
     getStyledText(): string {
-        const text =
-            this.indent === undefined
-                ? this.unmodified
-                : indentText(this.unmodified, this.indent)
-        if (this.style === undefined) {
-            return text
+        let text = this.unmodified
+        if (this.dedent === true) {
+            text = dedentText(text)
         }
-        return this.style.getStyledText(text)
+        if (this.indent !== undefined) {
+            text = indentText(text, this.indent)
+        }
+        if (this.style !== undefined) {
+            text = this.style.getStyledText(text)
+        }
+        return text
     }
 }
 
@@ -176,7 +180,7 @@ export class StyledText {
         return this
     }
 
-    getCurrentStyle(): Style {
+    getStyle(): Style {
         return this.#style
     }
 
@@ -185,12 +189,12 @@ export class StyledText {
         return this
     }
 
-    getCurrentIndent(): string {
+    getIndent(): string {
         return getIndentPrefix(this.#indent)
     }
 
     newLine(): typeof this {
-        return this.text('\n', { applyIndent: false, applyStyle: false })
+        return this.text('\n', { applyIndent: false, applyStyle: false, dedentText: false })
     }
 
     text(
@@ -199,6 +203,7 @@ export class StyledText {
             applyStyle?: boolean
             style?: Style
             applyIndent?: boolean
+            dedentText?: boolean
         },
     ): typeof this {
         if (value === '') {
@@ -219,9 +224,10 @@ export class StyledText {
 
         this.#parts.push(
             new LazyStyledText(
-                value,
+                value,  // unmodified text
                 options?.applyStyle === false ? undefined : this.#style,
-                calculatedApplyIndent ? this.getCurrentIndent() : undefined,
+                calculatedApplyIndent ? this.getIndent() : undefined,
+                options?.dedentText,
             ),
         )
 
@@ -245,8 +251,9 @@ export class StyledText {
             const priorPart = consolidatedParts[consolidatedParts.length - 1]
             if (
                 priorPart !== undefined &&
-                priorPart.style === currentPart.style &&
-                priorPart.indent === currentPart.indent
+                priorPart.style === currentPart.style &&  // TODO: must make this compare by value not reference
+                priorPart.indent === currentPart.indent &&
+                priorPart.dedent === currentPart.dedent
             ) {
                 priorPart.unmodified += currentPart.unmodified
             } else {
@@ -259,10 +266,10 @@ export class StyledText {
 }
 
 export const style = {
-    color: (color: Color): Style => {
+    textColor: (color: Color): Style => {
         return new Style({ textColor: color })
     },
-    background: (color: Color): Style => {
+    backgroundColor: (color: Color): Style => {
         return new Style({ backgroundColor: color })
     },
     fontStyle: (...modifiers: FontStyle[]): Style => {

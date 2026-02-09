@@ -192,3 +192,47 @@ describe('strip style', () => {
         expect(stripStyle(styledText)).toBe('hello world!')
     })
 })
+
+describe('class LazyStyledText', () => {
+    test('no modifications', () => {
+        const text = new LazyStyledText('hello world')
+        expect(text.getStyledText()).toBe('hello world')
+    })
+
+    test('with indent', () => {
+        const text = new LazyStyledText('hello world')
+        text.indent = '  '
+        expect(text.getStyledText()).toBe('  hello world')
+    })
+
+    test('with dedent', () => {
+        const text = new LazyStyledText('  hello world')
+        text.dedent = true
+        expect(text.getStyledText()).toBe('hello world')
+    })
+
+    test('with dedent and indent', () => {
+        const text = new LazyStyledText('  hello world')
+        text.dedent = true
+        text.indent = '    '
+        expect(text.getStyledText()).toBe('    hello world')
+    })
+
+    test('with style', () => {
+        const text = new LazyStyledText('hello world')
+        text.style = new Style({ textColor: 'blue' })
+        expect(text.getStyledText()).toBe(
+            `${colors.blue.text.set}hello world${colors.blue.text.unset}`
+        )
+    })
+
+    test('with all options', () => {
+        const text = new LazyStyledText('  hello world')
+        text.style = new Style({ textColor: 'blue' })
+        text.dedent = true
+        text.indent = '    '
+        expect(text.getStyledText()).toBe(
+            `${colors.blue.text.set}    hello world${colors.blue.text.unset}`
+        )
+    })
+})
