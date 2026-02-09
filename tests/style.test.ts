@@ -156,6 +156,7 @@ describe('class Style', () => {
             fontStyle: ['bold', 'italic'],
         })
         expect(fancyStyle.getStyledText('hello')).toBe(
+            // eslint-disable-next-line prefer-template
             colors.red.text.set +
                 colors.blue.background.set +
                 textModifiers.bold.set +
@@ -249,17 +250,13 @@ describe('class StyledTextBuilder', () => {
         expect(
             new StyledTextBuilder(style.textColor('blue'))
                 .text('hello world')
-                .toString()
-        ).toBe(
-            `${colors.blue.text.set}hello world${colors.blue.text.unset}`
-        )
+                .toString(),
+        ).toBe(`${colors.blue.text.set}hello world${colors.blue.text.unset}`)
         expect(
             new StyledTextBuilder(style.textColor('blue'), '  ')
                 .text('hello world')
-                .toString()
-        ).toBe(
-            `${colors.blue.text.set}  hello world${colors.blue.text.unset}`
-        )
+                .toString(),
+        ).toBe(`${colors.blue.text.set}  hello world${colors.blue.text.unset}`)
     })
 
     test('with fancy style', () => {
@@ -273,6 +270,7 @@ describe('class StyledTextBuilder', () => {
         expect(output.getIndent()).toBe('  ')
         expect(output.getStyle()).toBe(fancyStyle)
         expect(output.toString()).toBe(
+            // eslint-disable-next-line prefer-template
             colors.red.text.set +
                 colors.blue.background.set +
                 textModifiers.bold.set +
@@ -291,17 +289,21 @@ describe('class StyledTextBuilder', () => {
         output.newLine()
         output.text('there')
         expect(output.toString()).toBe(
+            // eslint-disable-next-line prefer-template
             `${colors.blue.background.set} hi${colors.blue.background.unset}` +
-            '\n' +
-            `${colors.blue.background.set} there${colors.blue.background.unset}`
+                '\n' +
+                colors.blue.background.set +
+                ' there' +
+                colors.blue.background.unset,
         )
 
         output = new StyledTextBuilder(style.backgroundColor('blue'), ' ')
         output.text('hi\nthere')
         expect(output.toString()).toBe(
+            // eslint-disable-next-line prefer-template
             colors.blue.background.set +
-            ' hi\n there' +
-            colors.blue.background.unset
+                ' hi\n there' +
+                colors.blue.background.unset,
         )
     })
 
@@ -311,22 +313,26 @@ describe('class StyledTextBuilder', () => {
         output.newLine()
         output.text('there', { applyIndent: false })
         expect(output.toString()).toBe(
+            // eslint-disable-next-line prefer-template
             ' hi\n' +
-            `${colors.blue.background.set}there${colors.blue.background.unset}`
+                colors.blue.background.set +
+                'there' +
+                colors.blue.background.unset,
         )
 
         output = new StyledTextBuilder(style.backgroundColor('blue'), ' ')
-        output.text('!', { style: style.textColor('red') } )
+        output.text('!', { style: style.textColor('red') })
         output.newLine()
         output.text('    another line...', { dedentText: true, newLine: true })
         output.text('final line', { applyStyle: false })
         expect(output.toString()).toBe(
+            // eslint-disable-next-line prefer-template
             `${colors.red.text.set} !${colors.red.text.unset}` +
-            '\n' +
-            colors.blue.background.set +
-            ' another line...' +
-            colors.blue.background.unset +
-            '\n final line'
+                '\n' +
+                colors.blue.background.set +
+                ' another line...' +
+                colors.blue.background.unset +
+                '\n final line',
         )
     })
 
@@ -337,8 +343,8 @@ describe('class StyledTextBuilder', () => {
         output.text('green', { style: style.textColor('green') })
         expect(output.toString()).toBe(
             `${colors.red.text.set}red${colors.red.text.unset}` +
-            `${colors.blue.text.set}blue${colors.blue.text.unset}` +
-            `${colors.green.text.set}green${colors.green.text.unset}`
+                `${colors.blue.text.set}blue${colors.blue.text.unset}` +
+                `${colors.green.text.set}green${colors.green.text.unset}`,
         )
     })
 })

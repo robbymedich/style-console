@@ -15,6 +15,7 @@ export function getDefaultIndent(): string {
 }
 
 export function stripStyle(text: string): string {
+    // eslint-disable-next-line no-control-regex
     return text.replaceAll(/\x1b\[\d+m/gu, '')
 }
 
@@ -147,7 +148,7 @@ export class LazyStyledText {
         public unmodified: string,
         public style?: Style,
         public indent?: string,
-        public dedent: boolean = false,
+        public dedent = false,
     ) {}
 
     getStyledText(): string {
@@ -201,6 +202,7 @@ export class StyledTextBuilder {
         })
     }
 
+    // eslint-disable-next-line complexity
     text(
         value: string,
         options?: {
