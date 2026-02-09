@@ -4,6 +4,7 @@ import { textModifiers } from '../src/modifiers.ts'
 import {
     getDefaultIndent,
     setDefaultIndent,
+    stripStyle,
     Style,
     LazyStyledText,
     StyledText,
@@ -144,9 +145,50 @@ describe('class Style', () => {
     })
 
     test('get styled text', () => {
-        const myStyle = new Style({ textColor: 'blue' })
-        expect(myStyle.getStyledText('hello')).toBe(
+        const basicStyle = new Style({ textColor: 'blue' })
+        expect(basicStyle.getStyledText('hello')).toBe(
             `${colors.blue.text.set}hello${colors.blue.text.unset}`
         )
+
+        const fancyStyle = new Style({
+            textColor: 'red',
+            backgroundColor: 'blue',
+            fontStyle: ['bold', 'italic'],
+        })
+        expect(fancyStyle.getStyledText('hello')).toBe(
+            colors.red.text.set +
+            colors.blue.background.set +
+            textModifiers.bold.set +
+            textModifiers.italic.set +
+            'hello' +
+            textModifiers.italic.unset +
+            textModifiers.bold.unset +
+            colors.blue.background.unset +
+            colors.red.text.unset
+        )
+    })
+})
+
+describe('strip style', () => {
+    test('no styling', () => {
+        expect(stripStyle('hello world!')).toBe('hello world!')
+    })
+
+    test('basic styling', () => {
+        const basicStyle = new Style({ textColor: 'blue' })
+        const styledText = basicStyle.getStyledText('hello world!')
+        expect(styledText.length > 'hello world!'.length)
+        expect(stripStyle(styledText)).toBe('hello world!')
+    })
+
+    test('multi-modifiers', () => {
+        const fancyStyle = new Style({
+            textColor: 'red',
+            backgroundColor: 'blue',
+            fontStyle: ['bold', 'italic'],
+        })
+        const styledText = fancyStyle.getStyledText('hello world!')
+        expect(styledText.length > 'hello world!'.length)
+        expect(stripStyle(styledText)).toBe('hello world!')
     })
 })

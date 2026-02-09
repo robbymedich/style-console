@@ -14,6 +14,10 @@ export function getDefaultIndent(): string {
     return DEFAULT_INDENT
 }
 
+export function stripStyle(text: string): string {
+    return text.replaceAll(/\x1b\[\d+m/ug, '')
+}
+
 export function getIndentPrefix(indent: string | number): string {
     return typeof indent === 'string' ? indent : DEFAULT_INDENT.repeat(indent)
 }

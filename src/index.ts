@@ -7,6 +7,7 @@ export { textModifiers } from './modifiers.js'
 export {
     setDefaultIndent,
     getDefaultIndent,
+    stripStyle,
     getIndentPrefix,
     Style,
     LazyStyledText,
