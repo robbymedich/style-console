@@ -15,7 +15,7 @@ export function getDefaultIndent(): string {
 }
 
 export function stripStyle(text: string): string {
-    return text.replaceAll(/\x1b\[\d+m/ug, '')
+    return text.replaceAll(/\x1b\[\d+m/gu, '')
 }
 
 export function getIndentPrefix(indent: string | number): string {
@@ -165,7 +165,7 @@ export class LazyStyledText {
     }
 }
 
-export class StyledText {
+export class StyledTextBuilder {
     #style: Style
     #indent: string | number
     #parts: LazyStyledText[] = []
@@ -194,7 +194,11 @@ export class StyledText {
     }
 
     newLine(): typeof this {
-        return this.text('\n', { applyIndent: false, applyStyle: false, dedentText: false })
+        return this.text('\n', {
+            applyIndent: false,
+            applyStyle: false,
+            dedentText: false,
+        })
     }
 
     text(
@@ -204,6 +208,7 @@ export class StyledText {
             style?: Style
             applyIndent?: boolean
             dedentText?: boolean
+            newLine?: boolean
         },
     ): typeof this {
         if (value === '') {
@@ -217,19 +222,22 @@ export class StyledText {
         let calculatedApplyIndent
         if (options?.applyIndent === undefined) {
             const prior = this.#parts[this.#parts.length - 1]
-            calculatedApplyIndent = prior?.unmodified.endsWith('\n') ?? false
+            calculatedApplyIndent = prior?.unmodified.endsWith('\n') ?? true
         } else {
             calculatedApplyIndent = options.applyIndent
         }
 
         this.#parts.push(
             new LazyStyledText(
-                value,  // unmodified text
+                value, // unmodified text
                 options?.applyStyle === false ? undefined : this.#style,
                 calculatedApplyIndent ? this.getIndent() : undefined,
                 options?.dedentText,
             ),
         )
+        if (options?.newLine === true) {
+            this.newLine()
+        }
 
         if (resetStyle !== undefined) {
             this.style(resetStyle)
@@ -251,7 +259,7 @@ export class StyledText {
             const priorPart = consolidatedParts[consolidatedParts.length - 1]
             if (
                 priorPart !== undefined &&
-                priorPart.style === currentPart.style &&  // TODO: must make this compare by value not reference
+                priorPart.style === currentPart.style && // TODO: must make this compare by value not reference
                 priorPart.indent === currentPart.indent &&
                 priorPart.dedent === currentPart.dedent
             ) {
