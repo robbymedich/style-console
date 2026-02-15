@@ -11,6 +11,6 @@ export {
     getIndentPrefix,
     Style,
     LazyStyledText,
-    StyledTextBuilder as StyledText,
+    StyledTextBuilder,
     style,
 } from './style.js'
