@@ -16,7 +16,7 @@ export type Style = {
     fontStyles?: FontStyle[]
 }
 
-export type Stylist = ((text: string) => LazyStyledText) & (() => Style)
+export type Stylist = ((text: string) => LazyStyledText[]) & (() => Style)
 
 // used to stay in sync with BackgroundColor type with Object.defineProperty
 function capitalize(value: string): string {
@@ -32,39 +32,47 @@ export type StyleBuilder = {
 } & {
     readonly [key in FontStyle]: StyleBuilder
 } & (() => Stylist) &
-    ((text: string) => LazyStyledText)
+    ((...text: string[]) => LazyStyledText[])
+
+export type StyleInitializer = {
+    readonly [key in Color]: StyleBuilder
+} & {
+    readonly [key in BackgroundColor]: StyleBuilder
+} & {
+    readonly [key in FontStyle]: StyleBuilder
+} & {
+    default: () => Stylist
+} & {
+    default: (...text: string[]) => LazyStyledText[]
+}
 
 function createStylist(options?: Style) {
     let textColor: Color | undefined = options?.textColor
     let backgroundColor: Color | undefined = options?.backgroundColor
     let fontStyles: FontStyle[] = options?.fontStyles ?? []
 
-    function build(optionalText?: string): LazyStyledText | Stylist {
-        if (optionalText !== undefined) {
+    function stylist(): Style
+    function stylist(text: string): LazyStyledText[]
+    function stylist(text?: string): LazyStyledText[] | Style {
+        if (text === undefined) {
             return {
-                text: optionalText,
                 textColor,
                 backgroundColor,
-                fontStyles: fontStyles.length === 0 ? undefined : fontStyles,
+                fontStyles:
+                    fontStyles.length === 0 ? undefined : fontStyles,
             }
         }
-        function stylist(): Style
-        function stylist(text: string): LazyStyledText
-        function stylist(text?: string): LazyStyledText | Style {
-            if (text === undefined) {
-                return {
-                    textColor,
-                    backgroundColor,
-                    fontStyles:
-                        fontStyles.length === 0 ? undefined : fontStyles,
-                }
-            }
-            return {
-                text,
-                textColor,
-                backgroundColor,
-                fontStyles: fontStyles.length === 0 ? undefined : fontStyles,
-            }
+        return [{
+            text,
+            textColor,
+            backgroundColor,
+            fontStyles: fontStyles.length === 0 ? undefined : fontStyles,
+        }]
+    }
+
+    function build(optionalText?: string): LazyStyledText[] | Stylist {
+        if (optionalText !== undefined) {
+            return stylist(optionalText)
         }
         return stylist
     }
@@ -108,18 +116,6 @@ function createStylist(options?: Style) {
     }
 
     return build as StyleBuilder
-}
-
-export type StyleInitializer = {
-    readonly [key in Color]: StyleBuilder
-} & {
-    readonly [key in BackgroundColor]: StyleBuilder
-} & {
-    readonly [key in FontStyle]: StyleBuilder
-} & {
-    default: () => Stylist
-} & {
-    default: (text: string) => LazyStyledText
 }
 
 export const style = (function () {
@@ -187,10 +183,10 @@ const theme = {
     important: style.bold.italic.red(),
 }
 const output = new StyledText(
-    theme.default('hello world'),
-    theme.important('this line is important'),
-    theme.default('this line is not'),
-    style.bgBlue('this has a blue background'),
+    ...theme.default('hello world'),
+    ...theme.important('this line is important'),
+    ...theme.default('this line is not'),
+    ...style.bgBlue('this has a blue background'),
 )
 console.log(output)
 
