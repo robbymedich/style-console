@@ -9,7 +9,7 @@ import {
     LazyStyledText,
     StyledTextBuilder,
     style,
-} from '../src/style.ts'
+} from '../src/styleOld.ts'
 
 test('default indent', () => {
     expect(getDefaultIndent()).toBe('    ')

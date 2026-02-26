@@ -3,30 +3,28 @@ import type { FontStyle } from './modifiers.js'
 import { colors } from './colors.js'
 import { textModifiers } from './modifiers.js'
 
-export type LazyStyledText = {
-    text: string
-    textColor?: Color
-    backgroundColor?: Color
-    fontStyles?: FontStyle[]
-}
+type Prettify<T> = {[key in keyof T]: T[key]} & {}
+type BackgroundColor = `bg${Capitalize<Color>}`
 
 export type Style = {
     textColor?: Color
     backgroundColor?: Color
     fontStyles?: FontStyle[]
 }
+export type LazyStyledText = Prettify<{ text: string } & Style>
 
-// used to stay in sync with BackgroundColor type with Object.defineProperty
-function capitalize(value: string): string {
-    return `${value.slice(0, 1).toUpperCase()}${value.slice(1)}`
-}
-
-type BackgroundColor = `bg${Capitalize<Color>}`
-type StringOrLazyStyledText = string | LazyStyledText | LazyStyledText[]
+type StringToLazyStyledText = (text: string) => LazyStyledText
+type ArrayToLazyStyledText = (
+    ...text: (string | LazyStyledText | LazyStyledText[])[]
+) => LazyStyledText[]
 
 export type Stylist = (() => Style) &
-    ((text: string) => LazyStyledText) &
-    ((...text: (string | LazyStyledText[])[]) => LazyStyledText[])
+    StringToLazyStyledText &
+    ArrayToLazyStyledText
+
+type BuildStylist = (() => Stylist) &
+    StringToLazyStyledText &
+    ArrayToLazyStyledText
 
 export type StyleBuilder = {
     readonly [key in Color]: StyleBuilder
@@ -34,9 +32,7 @@ export type StyleBuilder = {
     readonly [key in BackgroundColor]: StyleBuilder
 } & {
     readonly [key in FontStyle]: StyleBuilder
-} & (() => Stylist) &
-    ((text: string) => LazyStyledText) &
-    ((...text: StringOrLazyStyledText[]) => LazyStyledText[])
+} & BuildStylist
 
 /* eslint-disable @typescript-eslint/consistent-indexed-object-style */
 export type StyleInitializer = {
@@ -46,13 +42,14 @@ export type StyleInitializer = {
 } & {
     readonly [key in FontStyle]: StyleBuilder
 } & {
-    default: () => Stylist
-} & {
-    default: (text: string) => LazyStyledText
-} & {
-    default: (...text: StringOrLazyStyledText[]) => LazyStyledText[]
+    default: BuildStylist
 }
 /* eslint-enable @typescript-eslint/consistent-indexed-object-style */
+
+// used to stay in sync with BackgroundColor type with Object.defineProperty
+function capitalize(value: string): string {
+    return `${value.slice(0, 1).toUpperCase()}${value.slice(1)}`
+}
 
 function createStylist(options?: Style) {
     let textColor: Color | undefined = options?.textColor
@@ -61,10 +58,12 @@ function createStylist(options?: Style) {
 
     function stylist(): Style
     function stylist(text: string): LazyStyledText
-    function stylist(...text: StringOrLazyStyledText[]): LazyStyledText[]
+    function stylist(
+        ...text: (string | LazyStyledText | LazyStyledText[])[]
+    ): LazyStyledText[]
     // eslint-disable-next-line complexity
     function stylist(
-        ...text: StringOrLazyStyledText[]
+        ...text: (string | LazyStyledText | LazyStyledText[])[]
     ): Style | LazyStyledText | LazyStyledText[] {
         const finalStyles = fontStyles.length === 0 ? undefined : fontStyles
         const firstArg = text[0]
@@ -79,6 +78,7 @@ function createStylist(options?: Style) {
 
         if (text.length === 1) {
             if (typeof firstArg !== 'string') {
+                // TODO: implement the same cleaning as below
                 throw new Error('invalid type, expected a string argument')
             }
             return {
@@ -90,6 +90,7 @@ function createStylist(options?: Style) {
         }
 
         const results: LazyStyledText[] = []
+        // TODO: refactor to simplify and clean up
         for (const arg of text) {
             if (typeof arg === 'string') {
                 results.push({
@@ -137,7 +138,7 @@ function createStylist(options?: Style) {
     }
 
     function build(
-        ...text: StringOrLazyStyledText[]
+        ...text: (string | LazyStyledText | LazyStyledText[])[]
     ): LazyStyledText[] | LazyStyledText | Stylist {
         if (text.length > 0) {
             return stylist(...text)

@@ -13,4 +13,4 @@ export {
     LazyStyledText,
     StyledTextBuilder,
     style,
-} from './style.js'
+} from './styleOld.js'
