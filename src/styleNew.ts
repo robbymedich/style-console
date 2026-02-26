@@ -16,14 +16,14 @@ export type Style = {
     fontStyles?: FontStyle[]
 }
 
-export type Stylist = ((text: string) => LazyStyledText) & (() => Style)
-
 // used to stay in sync with BackgroundColor type with Object.defineProperty
 function capitalize(value: string): string {
     return `${value.slice(0, 1).toUpperCase()}${value.slice(1)}`
 }
 
 type BackgroundColor = `bg${Capitalize<Color>}`
+
+export type Stylist = (() => Style) & ((text: string) => LazyStyledText)
 
 export type StyleBuilder = {
     readonly [key in Color]: StyleBuilder
@@ -58,8 +58,7 @@ function createStylist(options?: Style) {
             return {
                 textColor,
                 backgroundColor,
-                fontStyles:
-                    fontStyles.length === 0 ? undefined : fontStyles,
+                fontStyles: fontStyles.length === 0 ? undefined : fontStyles,
             }
         }
         return {

@@ -16,14 +16,16 @@ export type Style = {
     fontStyles?: FontStyle[]
 }
 
-export type Stylist = ((text: string) => LazyStyledText[]) & (() => Style)
-
 // used to stay in sync with BackgroundColor type with Object.defineProperty
 function capitalize(value: string): string {
     return `${value.slice(0, 1).toUpperCase()}${value.slice(1)}`
 }
 
 type BackgroundColor = `bg${Capitalize<Color>}`
+
+export type Stylist = (() => Style) &
+    ((text: string) => LazyStyledText) &
+    ((...text: (string | LazyStyledText[])[]) => LazyStyledText[])
 
 export type StyleBuilder = {
     readonly [key in Color]: StyleBuilder
@@ -32,7 +34,10 @@ export type StyleBuilder = {
 } & {
     readonly [key in FontStyle]: StyleBuilder
 } & (() => Stylist) &
-    ((...text: string[]) => LazyStyledText[])
+    ((text: string) => LazyStyledText) &
+    ((
+        ...text: (string | LazyStyledText | LazyStyledText[])[]
+    ) => LazyStyledText[])
 
 export type StyleInitializer = {
     readonly [key in Color]: StyleBuilder
@@ -43,7 +48,11 @@ export type StyleInitializer = {
 } & {
     default: () => Stylist
 } & {
-    default: (...text: string[]) => LazyStyledText[]
+    default: (text: string) => LazyStyledText
+} & {
+    default: (
+        ...text: (string | LazyStyledText | LazyStyledText[])[]
+    ) => LazyStyledText[]
 }
 
 function createStylist(options?: Style) {
@@ -52,27 +61,88 @@ function createStylist(options?: Style) {
     let fontStyles: FontStyle[] = options?.fontStyles ?? []
 
     function stylist(): Style
-    function stylist(text: string): LazyStyledText[]
-    function stylist(text?: string): LazyStyledText[] | Style {
-        if (text === undefined) {
+    function stylist(text: string): LazyStyledText
+    function stylist(
+        ...text: (string | LazyStyledText | LazyStyledText[])[]
+    ): LazyStyledText[]
+    function stylist(
+        ...text: (string | LazyStyledText | LazyStyledText[])[]
+    ): Style | LazyStyledText | LazyStyledText[] {
+        const finalStyles = fontStyles.length === 0 ? undefined : fontStyles
+        const firstArg = text[0]
+
+        if (firstArg === undefined) {
             return {
                 textColor,
                 backgroundColor,
-                fontStyles:
-                    fontStyles.length === 0 ? undefined : fontStyles,
+                fontStyles: finalStyles,
             }
         }
-        return [{
-            text,
-            textColor,
-            backgroundColor,
-            fontStyles: fontStyles.length === 0 ? undefined : fontStyles,
-        }]
+
+        if (text.length === 1) {
+            if (typeof firstArg !== 'string') {
+                throw new Error('invalid type, expected a string argument')
+            }
+            return {
+                text: firstArg,
+                textColor,
+                backgroundColor,
+                fontStyles: finalStyles,
+            }
+        }
+
+        const results: LazyStyledText[] = []
+        for (const arg of text) {
+            if (typeof arg === 'string') {
+                results.push({
+                    text: arg,
+                    textColor,
+                    backgroundColor,
+                    fontStyles: finalStyles,
+                })
+            } else {
+                let priorLazyText
+                if (Array.isArray(arg)) {
+                    priorLazyText = arg
+                } else {
+                    priorLazyText = [arg]
+                }
+                for (const lazyText of priorLazyText) {
+                    if (typeof lazyText === 'string') {
+                        throw new Error(
+                            'invalid type, expected a string argument',
+                        )
+                    }
+                    if (
+                        textColor !== undefined &&
+                        lazyText.textColor === undefined
+                    ) {
+                        lazyText.textColor = textColor
+                    }
+                    if (
+                        backgroundColor !== undefined &&
+                        lazyText.backgroundColor === undefined
+                    ) {
+                        lazyText.backgroundColor = backgroundColor
+                    }
+                    if (
+                        finalStyles !== undefined &&
+                        lazyText.fontStyles === undefined
+                    ) {
+                        lazyText.fontStyles = finalStyles
+                    }
+                    results.push(lazyText)
+                }
+            }
+        }
+        return results
     }
 
-    function build(optionalText?: string): LazyStyledText[] | Stylist {
-        if (optionalText !== undefined) {
-            return stylist(optionalText)
+    function build(
+        ...text: (string | LazyStyledText | LazyStyledText[])[]
+    ): LazyStyledText[] | LazyStyledText | Stylist {
+        if (text.length > 0) {
+            return stylist(...text)
         }
         return stylist
     }
@@ -167,6 +237,14 @@ export const style = (function () {
     return build as StyleInitializer
 })()
 
+console.log(
+    style.green(
+        'I am a green line',
+        style.bgBlue.underline.bold('with a blue background substring'),
+        ' that becomes green again',
+    ),
+)
+
 class StyledText {
     content: LazyStyledText[]
     currentStyle?: Style
@@ -183,10 +261,10 @@ const theme = {
     important: style.bold.italic.red(),
 }
 const output = new StyledText(
-    ...theme.default('hello world'),
-    ...theme.important('this line is important'),
-    ...theme.default('this line is not'),
-    ...style.bgBlue('this has a blue background'),
+    theme.default('hello world'),
+    theme.important('this line is important'),
+    theme.default('this line is not'),
+    style.bgBlue('this has a blue background'),
 )
 console.log(output)
 
