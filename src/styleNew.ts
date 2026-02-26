@@ -22,8 +22,11 @@ function capitalize(value: string): string {
 }
 
 type BackgroundColor = `bg${Capitalize<Color>}`
+type StringOrLazyStyledText = string | LazyStyledText | LazyStyledText[]
 
-export type Stylist = (() => Style) & ((text: string) => LazyStyledText)
+export type Stylist = (() => Style) &
+    ((text: string) => LazyStyledText) &
+    ((...text: (string | LazyStyledText[])[]) => LazyStyledText[])
 
 export type StyleBuilder = {
     readonly [key in Color]: StyleBuilder
@@ -32,8 +35,10 @@ export type StyleBuilder = {
 } & {
     readonly [key in FontStyle]: StyleBuilder
 } & (() => Stylist) &
-    ((text: string) => LazyStyledText)
+    ((text: string) => LazyStyledText) &
+    ((...text: StringOrLazyStyledText[]) => LazyStyledText[])
 
+/* eslint-disable @typescript-eslint/consistent-indexed-object-style */
 export type StyleInitializer = {
     readonly [key in Color]: StyleBuilder
 } & {
@@ -44,34 +49,98 @@ export type StyleInitializer = {
     default: () => Stylist
 } & {
     default: (text: string) => LazyStyledText
+} & {
+    default: (...text: StringOrLazyStyledText[]) => LazyStyledText[]
 }
+/* eslint-enable @typescript-eslint/consistent-indexed-object-style */
 
 function createStylist(options?: Style) {
     let textColor: Color | undefined = options?.textColor
     let backgroundColor: Color | undefined = options?.backgroundColor
-    let fontStyles: FontStyle[] = options?.fontStyles ?? []
+    const fontStyles: FontStyle[] = options?.fontStyles ?? []
 
     function stylist(): Style
     function stylist(text: string): LazyStyledText
-    function stylist(text?: string): LazyStyledText | Style {
-        if (text === undefined) {
+    function stylist(...text: StringOrLazyStyledText[]): LazyStyledText[]
+    // eslint-disable-next-line complexity
+    function stylist(
+        ...text: StringOrLazyStyledText[]
+    ): Style | LazyStyledText | LazyStyledText[] {
+        const finalStyles = fontStyles.length === 0 ? undefined : fontStyles
+        const firstArg = text[0]
+
+        if (firstArg === undefined) {
             return {
                 textColor,
                 backgroundColor,
-                fontStyles: fontStyles.length === 0 ? undefined : fontStyles,
+                fontStyles: finalStyles,
             }
         }
-        return {
-            text,
-            textColor,
-            backgroundColor,
-            fontStyles: fontStyles.length === 0 ? undefined : fontStyles,
+
+        if (text.length === 1) {
+            if (typeof firstArg !== 'string') {
+                throw new Error('invalid type, expected a string argument')
+            }
+            return {
+                text: firstArg,
+                textColor,
+                backgroundColor,
+                fontStyles: finalStyles,
+            }
         }
+
+        const results: LazyStyledText[] = []
+        for (const arg of text) {
+            if (typeof arg === 'string') {
+                results.push({
+                    text: arg,
+                    textColor,
+                    backgroundColor,
+                    fontStyles: finalStyles,
+                })
+            } else {
+                let priorLazyText
+                if (Array.isArray(arg)) {
+                    priorLazyText = arg
+                } else {
+                    priorLazyText = [arg]
+                }
+                for (const lazyText of priorLazyText) {
+                    if (typeof lazyText === 'string') {
+                        throw new Error(
+                            'invalid type, expected a string argument',
+                        )
+                    }
+                    if (
+                        textColor !== undefined &&
+                        lazyText.textColor === undefined
+                    ) {
+                        lazyText.textColor = textColor
+                    }
+                    if (
+                        backgroundColor !== undefined &&
+                        lazyText.backgroundColor === undefined
+                    ) {
+                        lazyText.backgroundColor = backgroundColor
+                    }
+                    if (
+                        finalStyles !== undefined &&
+                        lazyText.fontStyles === undefined
+                    ) {
+                        lazyText.fontStyles = finalStyles
+                    }
+                    results.push(lazyText)
+                }
+            }
+        }
+        return results
     }
 
-    function build(optionalText?: string): LazyStyledText | Stylist {
-        if (optionalText !== undefined) {
-            return stylist(optionalText)
+    function build(
+        ...text: StringOrLazyStyledText[]
+    ): LazyStyledText[] | LazyStyledText | Stylist {
+        if (text.length > 0) {
+            return stylist(...text)
         }
         return stylist
     }
@@ -94,6 +163,7 @@ function createStylist(options?: Style) {
         })
     }
     for (const color of Object.getOwnPropertyNames(colors)) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         defineColors(color as Color)
     }
 
@@ -111,9 +181,11 @@ function createStylist(options?: Style) {
         if (fontStyle === 'reset') {
             continue // reset is a text modifier but not a font style
         }
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         defineFontStyle(fontStyle as FontStyle)
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     return build as StyleBuilder
 }
 
@@ -144,6 +216,7 @@ export const style = (function () {
         })
     }
     for (const color of Object.getOwnPropertyNames(colors)) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         defineColors(color as Color)
     }
 
@@ -160,37 +233,10 @@ export const style = (function () {
         if (fontStyle === 'reset') {
             continue // reset is a text modifier but not a font style
         }
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         defineFontStyle(fontStyle as FontStyle)
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     return build as StyleInitializer
 })()
-
-class StyledText {
-    content: LazyStyledText[]
-    currentStyle?: Style
-
-    constructor(...text: LazyStyledText[]) {
-        this.content = text
-    }
-
-    // text(value: string)
-}
-
-const theme = {
-    default: style.default(),
-    important: style.bold.italic.red(),
-}
-const output = new StyledText(
-    theme.default('hello world'),
-    theme.important('this line is important'),
-    theme.default('this line is not'),
-    style.bgBlue('this has a blue background'),
-)
-console.log(output)
-
-console.log(
-    style.bgBlueBright('hi there' + JSON.stringify(style.red('hello there'))),
-)
-console.log(style.default('hi'))
-console.log(theme.important())
