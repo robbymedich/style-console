@@ -13,7 +13,7 @@ export type Style = {
 }
 export type LazyStyledText = Prettify<{ text: string } & Style>
 
-type StringToLazyStyledText = (text: string) => LazyStyledText
+type StringToLazyStyledText = (text: string | LazyStyledText) => LazyStyledText
 type ArrayToLazyStyledText = (
     ...text: (string | LazyStyledText | LazyStyledText[])[]
 ) => LazyStyledText[]
@@ -42,7 +42,7 @@ export type StyleInitializer = {
 } & {
     readonly [key in FontStyle]: StyleBuilder
 } & {
-    default: BuildStylist
+    none: BuildStylist
 }
 /* eslint-enable @typescript-eslint/consistent-indexed-object-style */
 
@@ -57,7 +57,7 @@ function createStylist(options?: Style) {
     const fontStyles: FontStyle[] = options?.fontStyles ?? []
 
     function stylist(): Style
-    function stylist(text: string): LazyStyledText
+    function stylist(text: string | LazyStyledText): LazyStyledText
     function stylist(
         ...text: (string | LazyStyledText | LazyStyledText[])[]
     ): LazyStyledText[]
@@ -78,8 +78,28 @@ function createStylist(options?: Style) {
 
         if (text.length === 1) {
             if (typeof firstArg !== 'string') {
-                // TODO: implement the same cleaning as below
-                throw new Error('invalid type, expected a string argument')
+                if (Array.isArray(firstArg)) {
+                    throw new Error('ahh')
+                }
+                if (
+                    textColor !== undefined &&
+                    firstArg.textColor === undefined
+                ) {
+                    firstArg.textColor = textColor
+                }
+                if (
+                    backgroundColor !== undefined &&
+                    firstArg.backgroundColor === undefined
+                ) {
+                    firstArg.backgroundColor = backgroundColor
+                }
+                if (
+                    finalStyles !== undefined &&
+                    firstArg.fontStyles === undefined
+                ) {
+                    firstArg.fontStyles = finalStyles
+                }
+                return firstArg
             }
             return {
                 text: firstArg,
@@ -109,7 +129,7 @@ function createStylist(options?: Style) {
                 for (const lazyText of priorLazyText) {
                     if (typeof lazyText === 'string') {
                         throw new Error(
-                            'invalid type, expected a string argument',
+                            'invalid type, expected a LazyStyledText argument',
                         )
                     }
                     if (
@@ -172,7 +192,9 @@ function createStylist(options?: Style) {
     const defineFontStyle = (modifier: FontStyle) => {
         Object.defineProperty(build, modifier, {
             get() {
-                fontStyles.push(modifier)
+                if (!fontStyles.includes(modifier)) {
+                    fontStyles.push(modifier)
+                }
                 return this
             },
             enumerable: true,
@@ -193,8 +215,8 @@ function createStylist(options?: Style) {
 export const style = (function () {
     const build = {}
 
-    // set default option
-    Object.defineProperty(build, 'default', {
+    // set none option
+    Object.defineProperty(build, 'none', {
         get() {
             return createStylist()
         },
