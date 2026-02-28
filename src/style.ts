@@ -13,8 +13,8 @@ export type Style = {
 }
 export type LazyStyledText = Prettify<{ text: string } & Style>
 
-type StringToLazyStyledText = (text: string | LazyStyledText) => LazyStyledText
-type ArrayToLazyStyledText = (
+export type StringToLazyStyledText = (text: string | LazyStyledText) => LazyStyledText
+export type ArrayToLazyStyledText = (
     ...text: (string | LazyStyledText | LazyStyledText[])[]
 ) => LazyStyledText[]
 
@@ -23,26 +23,25 @@ export type Stylist = (() => Style) &
     ArrayToLazyStyledText
 
 const NEW = Symbol('new')
-
-export type StyleBuilder = {
-    readonly [key in Color]: StyleBuilder
+type InternalBuilder = {
+    readonly [key in Color]: InternalBuilder
 } & {
-    readonly [key in BackgroundColor]: StyleBuilder
+    readonly [key in BackgroundColor]: InternalBuilder
 } & {
-    readonly [key in FontStyle]: StyleBuilder
+    readonly [key in FontStyle]: InternalBuilder
 } & {
-    NEW: (style: Style) => StyleBuilder
+    NEW: (style: Style) => InternalBuilder
 } & (() => Stylist) &
     StringToLazyStyledText &
     ArrayToLazyStyledText
 
 /* eslint-disable @typescript-eslint/consistent-indexed-object-style */
-export type StyleInitializer = {
-    readonly [key in Color]: StyleBuilder
+export type StyleBuilder = {
+    readonly [key in Color]: InternalBuilder
 } & {
-    readonly [key in BackgroundColor]: StyleBuilder
+    readonly [key in BackgroundColor]: InternalBuilder
 } & {
-    readonly [key in FontStyle]: StyleBuilder
+    readonly [key in FontStyle]: InternalBuilder
 } & {
     none: (() => Stylist) & StringToLazyStyledText & ArrayToLazyStyledText
 }
@@ -223,7 +222,7 @@ const styleBuilder = (function () {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    return build as StyleBuilder
+    return build as InternalBuilder
 })()
 
 export const style = (function () {
@@ -275,5 +274,5 @@ export const style = (function () {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    return build as StyleInitializer
+    return build as StyleBuilder
 })()
