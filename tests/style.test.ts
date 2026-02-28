@@ -128,34 +128,4 @@ describe('style single argument', () => {
         const none = style.none()
         expect(none('hello world')).toEqual({text: 'hello world'})
     })
-
-    test.only('temp', () => {
-        console.time('speed test')
-        const green = style.green()
-        const blue = style.blue.underline.bold()
-        for (let i = 0; i < 100_000; i++) {
-            const result = green(
-                'I am a green line',
-                blue('with a blue substring'),
-                'that becomes green again',
-            )
-            // const result = [
-            //     {
-            //         text: 'I am a green line',
-            //         textColor: 'green'
-            //     },
-            //     {
-            //         text: 'with a blue substring',
-            //         textColor: 'blue',
-            //         fontStyles: (['bold', 'underline']),
-            //     },
-            //     {
-            //         text: 'that becomes green again',
-            //         textColor: 'green'
-            //     },
-            // ]
-            result.length
-        }
-        console.timeEnd('speed test')
-    })
 })

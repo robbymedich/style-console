@@ -4,13 +4,4 @@ export type { TextModifier, FontStyle } from './modifiers.js'
 export { indent, dedent } from './spacing.js'
 export { colors } from './colors.js'
 export { textModifiers } from './modifiers.js'
-export {
-    setDefaultIndent,
-    getDefaultIndent,
-    stripStyle,
-    getIndentPrefix,
-    Style,
-    LazyStyledText,
-    StyledTextBuilder,
-    style,
-} from './styleOld.js'
+export { style } from './style.js'
