@@ -22,18 +22,20 @@ export type Stylist = (() => Style) &
     StringToLazyStyledText &
     ArrayToLazyStyledText
 
-const NEW = Symbol('new')
-type InternalBuilder = {
+export type StyleBuilderChain = {
     readonly [key in Color]: InternalBuilder
 } & {
     readonly [key in BackgroundColor]: InternalBuilder
 } & {
     readonly [key in FontStyle]: InternalBuilder
-} & {
-    NEW: (style: Style) => InternalBuilder
 } & (() => Stylist) &
     StringToLazyStyledText &
     ArrayToLazyStyledText
+
+const NEW = Symbol('new')
+type InternalBuilder = StyleBuilderChain & {
+    NEW: (style: Style) => InternalBuilder
+}
 
 /* eslint-disable @typescript-eslint/consistent-indexed-object-style */
 export type StyleBuilder = {
@@ -70,32 +72,7 @@ function stylist(
             fontStyles: finalStyles,
         }
     }
-
-    if (text.length === 1) {
-        if (typeof firstArg !== 'string') {
-            if (Array.isArray(firstArg)) {
-                throw new Error('ahh')
-            }
-            if (
-                this.textColor !== undefined &&
-                firstArg.textColor === undefined
-            ) {
-                firstArg.textColor = this.textColor
-            }
-            if (
-                this.backgroundColor !== undefined &&
-                firstArg.backgroundColor === undefined
-            ) {
-                firstArg.backgroundColor = this.backgroundColor
-            }
-            if (
-                finalStyles !== undefined &&
-                firstArg.fontStyles === undefined
-            ) {
-                firstArg.fontStyles = finalStyles
-            }
-            return firstArg
-        }
+    if (text.length === 1 && typeof firstArg === 'string') {
         return {
             text: firstArg,
             textColor: this.textColor,
@@ -104,49 +81,47 @@ function stylist(
         }
     }
 
-    const results: LazyStyledText[] = []
-    // TODO: refactor to simplify and clean up
-    for (const arg of text) {
-        if (typeof arg === 'string') {
-            results.push({
-                text: arg,
+    const clean = (part: string | LazyStyledText): LazyStyledText => {
+        if (typeof part === 'string') {
+            return {
+                text: part,
                 textColor: this.textColor,
                 backgroundColor: this.backgroundColor,
                 fontStyles: finalStyles,
-            })
+            }
+        }
+        if (
+            this.textColor !== undefined &&
+            part.textColor === undefined
+        ) {
+            part.textColor = this.textColor
+        }
+        if (
+            this.backgroundColor !== undefined &&
+            part.backgroundColor === undefined
+        ) {
+            part.backgroundColor = this.backgroundColor
+        }
+        if (
+            finalStyles !== undefined &&
+            part.fontStyles === undefined
+        ) {
+            part.fontStyles = finalStyles
+        }
+        return part
+    }
+    if (text.length === 1 && !Array.isArray(firstArg)) {
+        return clean(firstArg)
+    }
+    const results: LazyStyledText[] = []
+
+    for (const part of text) {
+        if (Array.isArray(part)) {
+            for (const subPart of part) {
+                results.push(clean(subPart))
+            }
         } else {
-            let priorLazyText
-            if (Array.isArray(arg)) {
-                priorLazyText = arg
-            } else {
-                priorLazyText = [arg]
-            }
-            for (const lazyText of priorLazyText) {
-                if (typeof lazyText === 'string') {
-                    throw new Error(
-                        'invalid type, expected a LazyStyledText argument',
-                    )
-                }
-                if (
-                    this.textColor !== undefined &&
-                    lazyText.textColor === undefined
-                ) {
-                    lazyText.textColor = this.textColor
-                }
-                if (
-                    this.backgroundColor !== undefined &&
-                    lazyText.backgroundColor === undefined
-                ) {
-                    lazyText.backgroundColor = this.backgroundColor
-                }
-                if (
-                    finalStyles !== undefined &&
-                    lazyText.fontStyles === undefined
-                ) {
-                    lazyText.fontStyles = finalStyles
-                }
-                results.push(lazyText)
-            }
+            results.push(clean(part))
         }
     }
     return results
