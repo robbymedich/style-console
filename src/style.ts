@@ -22,6 +22,8 @@ export type Stylist = (() => Style) &
     StringToLazyStyledText &
     ArrayToLazyStyledText
 
+const NEW = Symbol('new')
+
 export type StyleBuilder = {
     readonly [key in Color]: StyleBuilder
 } & {
@@ -29,7 +31,7 @@ export type StyleBuilder = {
 } & {
     readonly [key in FontStyle]: StyleBuilder
 } & {
-    new: (style: Style) => StyleBuilder
+    NEW: (style: Style) => StyleBuilder
 } & (() => Stylist) &
     StringToLazyStyledText &
     ArrayToLazyStyledText
@@ -169,7 +171,7 @@ const styleBuilder = (function () {
         }
         return stylist.bind(builtStyle)
     }
-    build.new = (style: Style) => {
+    build.NEW = (style: Style) => {
         options.push(style)
         return build
     }
@@ -230,7 +232,7 @@ export const style = (function () {
     // set none option
     Object.defineProperty(build, 'none', {
         get() {
-            return styleBuilder.new({})
+            return styleBuilder.NEW({})
         },
         enumerable: true,
     })
@@ -239,13 +241,13 @@ export const style = (function () {
     const defineColors = (color: Color) => {
         Object.defineProperty(build, color, {
             get() {
-                return styleBuilder.new({ textColor: color })
+                return styleBuilder.NEW({ textColor: color })
             },
             enumerable: true,
         })
         Object.defineProperty(build, `bg${capitalize(color)}`, {
             get() {
-                return styleBuilder.new({ backgroundColor: color })
+                return styleBuilder.NEW({ backgroundColor: color })
             },
             enumerable: true,
         })
@@ -259,7 +261,7 @@ export const style = (function () {
     const defineFontStyle = (modifier: FontStyle) => {
         Object.defineProperty(build, modifier, {
             get() {
-                return styleBuilder.new({ fontStyles: [modifier] })
+                return styleBuilder.NEW({ fontStyles: [modifier] })
             },
             enumerable: true,
         })
