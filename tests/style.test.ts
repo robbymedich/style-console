@@ -14,7 +14,7 @@ describe('style no arguments', () => {
 
     test('all background colors', () => {
         const capitalize = (color: string) => {
-            return `${color.slice(0,1).toUpperCase()}${color.slice(1)}`
+            return `${color.slice(0, 1).toUpperCase()}${color.slice(1)}`
         }
         for (const color of Object.getOwnPropertyNames(colors)) {
             const styleObject = style[`bg${capitalize(color)}`]()()
@@ -28,7 +28,7 @@ describe('style no arguments', () => {
                 continue
             }
             const styleObject = style[modifier]()()
-            expect(styleObject).toEqual({ fontStyles: [ modifier ] })
+            expect(styleObject).toEqual({ fontStyles: [modifier] })
         }
     })
 
@@ -36,7 +36,7 @@ describe('style no arguments', () => {
         expect(style.bold.red.bgBlueBright.italic()()).toEqual({
             textColor: 'red',
             backgroundColor: 'blueBright',
-            fontStyles: ['bold', 'italic']
+            fontStyles: ['bold', 'italic'],
         })
 
         expect(style.white.bgBlack()()).toEqual({
@@ -49,10 +49,10 @@ describe('style no arguments', () => {
         expect(style.red.white.blue()()).toEqual({ textColor: 'blue' })
         expect(style.red.bold.white.blue()()).toEqual({
             textColor: 'blue',
-            fontStyles: ['bold']
+            fontStyles: ['bold'],
         })
         expect(style.bold.bold.italic.italic()()).toEqual({
-            fontStyles: ['bold', 'italic']
+            fontStyles: ['bold', 'italic'],
         })
     })
 
@@ -65,12 +65,12 @@ describe('style single argument', () => {
     test('red text', () => {
         expect(style.red('this text is red')).toEqual({
             text: 'this text is red',
-            textColor: 'red'
+            textColor: 'red',
         })
         const red = style.red()
         expect(red('this is red')).toEqual({
             text: 'this is red',
-            textColor: 'red'
+            textColor: 'red',
         })
     })
 
@@ -86,14 +86,14 @@ describe('style single argument', () => {
             text: 'more fancy stuff',
             textColor: 'blue',
             backgroundColor: 'green',
-            fontStyles: ['bold']
+            fontStyles: ['bold'],
         })
     })
 
     test('reuse style', () => {
         const bold = style.bold()
-        expect(bold('hello')).toEqual({text: 'hello', fontStyles: ['bold']})
-        expect(bold('world')).toEqual({text: 'world', fontStyles: ['bold']})
+        expect(bold('hello')).toEqual({ text: 'hello', fontStyles: ['bold'] })
+        expect(bold('world')).toEqual({ text: 'world', fontStyles: ['bold'] })
     })
 
     test('lazy input argument', () => {
@@ -107,25 +107,17 @@ describe('style single argument', () => {
         expect(style.blue(greenText)).toEqual(expected)
     })
 
-    test('list of strings', () => {
+    test('list of strings', () => {})
 
-    })
+    test('list of lazy styled text', () => {})
 
-    test('list of lazy styled text', () => {
+    test('mixed list', () => {})
 
-    })
-
-    test('mixed list', () => {
-
-    })
-
-    test('list of lists', () => {
-
-    })
+    test('list of lists', () => {})
 
     test('no style', () => {
-        expect(style.none('hello world')).toEqual({text: 'hello world'})
+        expect(style.none('hello world')).toEqual({ text: 'hello world' })
         const none = style.none()
-        expect(none('hello world')).toEqual({text: 'hello world'})
+        expect(none('hello world')).toEqual({ text: 'hello world' })
     })
 })
