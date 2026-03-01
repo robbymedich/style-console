@@ -1,4 +1,4 @@
-export const colors = {
+export const colorOption = {
     black: {
         text: { set: '\x1b[30m', unset: '\x1b[39m' },
         background: { set: '\x1b[40m', unset: '\x1b[49m' },
@@ -65,4 +65,63 @@ export const colors = {
     },
 } as const
 
-export type Color = keyof typeof colors
+export type Color = keyof typeof colorOption
+// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+export const colors = Object.getOwnPropertyNames(colorOption) as Color[]
+
+const invertColor =
+    'rgb(from currentColor calc(255 - r) calc(255 - g) calc(255 - b))'
+export const fontStyleOption = {
+    bold: { set: '\x1b[1m', unset: '\x1b[22m', css: 'font-weight: bold' },
+    dim: {
+        set: '\x1b[2m',
+        unset: '\x1b[22m',
+        css: 'color: rgb(from currentColor r g b / 0.5)',
+    },
+    italic: { set: '\x1b[3m', unset: '\x1b[23m', css: 'font-style: italic' },
+    underline: {
+        set: '\x1b[4m',
+        unset: '\x1b[24m',
+        css: 'text-decoration: underline',
+    },
+    strikethrough: {
+        set: '\x1b[9m',
+        unset: '\x1b[29m',
+        css: 'text-decoration: line-through',
+    },
+    // below are ignored in chrome when using ANSI styling
+    blink: { set: '\x1b[5m', unset: '\x1b[25m', css: '' }, // css not supported
+    hidden: {
+        set: '\x1b[8m',
+        unset: '\x1b[28m',
+        css: 'color: rgb(from currentColor r g b / 0)',
+    },
+    inverse: {
+        set: '\x1b[7m',
+        unset: '\x1b[27m',
+        css: `color: ${invertColor}; background: ${invertColor}`,
+    },
+    // below are ignored in mac terminal and chrome when using ANSI styling
+    doubleunderline: {
+        set: '\x1b[21m',
+        unset: '\x1b[24m',
+        css: 'text-decoration: underline double',
+    },
+    framed: {
+        set: '\x1b[51m',
+        unset: '\x1b[54m',
+        css: 'padding: 1px; border: 1px solid currentColor',
+    },
+    // below is supposed to work with ANSI styling but doesn't
+    overlined: {
+        set: '\x1b[53m',
+        unset: '\x1b[55m',
+        css: 'text-decoration: overline',
+    },
+} as const
+
+export type FontStyle = keyof typeof fontStyleOption
+// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+export const fontStyles = Object.getOwnPropertyNames(
+    fontStyleOption,
+) as FontStyle[]

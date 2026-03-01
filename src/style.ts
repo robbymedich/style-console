@@ -1,11 +1,7 @@
-import type { Color } from './colors.js'
-import type { FontStyle } from './modifiers.js'
-import { colors } from './colors.js'
-import { textModifiers } from './modifiers.js'
+import type { Color, FontStyle } from './options.js'
+import { colors, fontStyles } from './options.js'
 
 type Prettify<T> = { [key in keyof T]: T[key] } & {}
-type BackgroundColor = `bg${Capitalize<Color>}`
-
 export type Style = {
     textColor?: Color
     backgroundColor?: Color
@@ -18,15 +14,12 @@ function stylist(text: string | LazyStyledText): LazyStyledText
 function stylist(
     ...text: (string | LazyStyledText | LazyStyledText[])[]
 ): LazyStyledText[]
-// eslint-disable-next-line complexity
 function stylist(
     this: Style,
     ...text: (string | LazyStyledText | LazyStyledText[])[]
 ): Style | LazyStyledText | LazyStyledText[] {
     if (this === undefined) {
-        throw new Error(
-            'style context not found, did you try to reuse an unsaved style?'
-        )
+        throw new Error("style context not found, 'this' binding incorrect")
     }
     const finalStyles =
         this.fontStyles === undefined || this.fontStyles.length === 0
@@ -96,7 +89,7 @@ function capitalize(value: string): string {
 }
 
 // Set color options on the builder
-for (const color of Object.getOwnPropertyNames(colors)) {
+for (const color of colors) {
     Object.defineProperty(stylist.prototype, color, {
         get() {
             this.textColor = color
@@ -114,16 +107,13 @@ for (const color of Object.getOwnPropertyNames(colors)) {
 }
 
 // Set font style options on the builder
-for (const fontStyle of Object.getOwnPropertyNames(textModifiers)) {
-    if (fontStyle === 'reset') {
-        continue // reset is a text modifier but not a font style
-    }
+for (const fontStyle of fontStyles) {
     Object.defineProperty(stylist.prototype, fontStyle, {
         get() {
             if (this.fontStyles === undefined) {
                 this.fontStyles = []
             }
-            if (!this.fontStyles.includes(fontStyle)) {
+            if (this.fontStyles.includes(fontStyle) === false) {
                 this.fontStyles.push(fontStyle)
             }
             return this
@@ -131,6 +121,8 @@ for (const fontStyle of Object.getOwnPropertyNames(textModifiers)) {
         enumerable: true,
     })
 }
+
+type BackgroundColor = `bg${Capitalize<Color>}`
 
 export type Stylist = typeof stylist
 
@@ -157,11 +149,9 @@ export type StyleInitializer = {
 function styleBuilder(
     textColor?: Color,
     backgroundColor?: Color,
-    fontStyles?: FontStyle[]
+    fontStyles?: FontStyle[],
 ): StyleBuilder {
-    const build = function (
-        ...args: Parameters<Stylist>
-    ): ReturnType<Stylist> {
+    const build = function (...args: Parameters<Stylist>): ReturnType<Stylist> {
         return stylist.call(build, ...args)
     }
 
@@ -170,6 +160,7 @@ function styleBuilder(
     build.backgroundColor = backgroundColor
     build.fontStyles = fontStyles
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     return build as StyleBuilder
 }
 
@@ -185,29 +176,26 @@ export const style = (function () {
     })
 
     // Set color options on the builder
-    for (const color of Object.getOwnPropertyNames(colors)) {
+    for (const color of colors) {
         Object.defineProperty(build, color, {
             get() {
-                return styleBuilder(color as Color)
+                return styleBuilder(color)
             },
             enumerable: true,
         })
         Object.defineProperty(build, `bg${capitalize(color)}`, {
             get() {
-                return styleBuilder(undefined, color as Color)
+                return styleBuilder(undefined, color)
             },
             enumerable: true,
         })
     }
 
     // Set font style options on the builder
-    for (const fontStyle of Object.getOwnPropertyNames(textModifiers)) {
-        if (fontStyle === 'reset') {
-            continue // reset is a text modifier but not a font style
-        }
+    for (const fontStyle of fontStyles) {
         Object.defineProperty(build, fontStyle, {
             get() {
-                return styleBuilder(undefined, undefined, [fontStyle as FontStyle])
+                return styleBuilder(undefined, undefined, [fontStyle])
             },
             enumerable: true,
         })

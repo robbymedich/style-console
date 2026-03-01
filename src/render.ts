@@ -1,8 +1,6 @@
-import type { Color } from './colors.js'
-import type { FontStyle } from './modifiers.js'
+import type { Color, FontStyle } from './options.js'
 import type { LazyStyledText } from './style.js'
-import { colors } from './colors.js'
-import { textModifiers, cssFontStyle } from './modifiers.js'
+import { colorOption, fontStyleOption } from './options.js'
 
 export function stripAnsi(text: string): string {
     // eslint-disable-next-line no-control-regex
@@ -22,32 +20,32 @@ export function renderAnsi(
         const part = typeof rawPart === 'string' ? { text: rawPart } : rawPart
         if (part.textColor !== textColor) {
             if (textColor !== undefined) {
-                final.push(colors[textColor].text.unset)
+                final.push(colorOption[textColor].text.unset)
             }
             textColor = part.textColor
             if (textColor !== undefined) {
-                final.push(colors[textColor].text.set)
+                final.push(colorOption[textColor].text.set)
             }
         }
         if (part.backgroundColor !== backgroundColor) {
             if (backgroundColor !== undefined) {
-                final.push(colors[backgroundColor].background.unset)
+                final.push(colorOption[backgroundColor].background.unset)
             }
             backgroundColor = part.backgroundColor
             if (backgroundColor !== undefined) {
-                final.push(colors[backgroundColor].background.set)
+                final.push(colorOption[backgroundColor].background.set)
             }
         }
         if (part.fontStyles !== fontStyles) {
             if (fontStyles !== undefined) {
-                for (const modifier of fontStyles) {
-                    final.push(textModifiers[modifier].unset)
+                for (const fontStyle of fontStyles) {
+                    final.push(fontStyleOption[fontStyle].unset)
                 }
             }
             fontStyles = part.fontStyles
             if (fontStyles !== undefined) {
-                for (const modifier of fontStyles) {
-                    final.push(textModifiers[modifier].set)
+                for (const fontStyle of fontStyles) {
+                    final.push(fontStyleOption[fontStyle].set)
                 }
             }
         }
@@ -55,14 +53,14 @@ export function renderAnsi(
     }
 
     if (textColor !== undefined) {
-        final.push(colors[textColor].text.unset)
+        final.push(colorOption[textColor].text.unset)
     }
     if (backgroundColor !== undefined) {
-        final.push(colors[backgroundColor].background.unset)
+        final.push(colorOption[backgroundColor].background.unset)
     }
     if (fontStyles !== undefined) {
-        for (const modifier of fontStyles) {
-            final.push(textModifiers[modifier].set)
+        for (const fontStyle of fontStyles) {
+            final.push(fontStyleOption[fontStyle].set)
         }
     }
     return final.join('')
@@ -103,9 +101,9 @@ function css(
         cssStyles.push(`background: ${backgroundColor}`)
     }
     if (fontStyles !== undefined) {
-        for (const modifer of fontStyles) {
+        for (const fontStyle of fontStyles) {
             // TODO: must adjust text decoration styles
-            cssStyles.push(cssFontStyle[modifer])
+            cssStyles.push(fontStyleOption[fontStyle].css)
         }
     }
     return cssStyles.join('; ')

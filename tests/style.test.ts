@@ -1,12 +1,11 @@
 import { expect, test, describe } from 'bun:test'
-import { colors } from '../src/colors.ts'
-import { textModifiers } from '../src/modifiers.ts'
+import { colors, fontStyles } from '../src/options.ts'
 import { style } from '../src/style'
 import type { LazyStyledText } from '../src/style.ts'
 
 describe('style no arguments', () => {
     test('all text colors', () => {
-        for (const color of Object.getOwnPropertyNames(colors)) {
+        for (const color of colors) {
             const styleObject = style[color]()
             expect(styleObject).toEqual({ textColor: color })
         }
@@ -16,17 +15,14 @@ describe('style no arguments', () => {
         const capitalize = (color: string) => {
             return `${color.slice(0, 1).toUpperCase()}${color.slice(1)}`
         }
-        for (const color of Object.getOwnPropertyNames(colors)) {
+        for (const color of colors) {
             const styleObject = style[`bg${capitalize(color)}`]()
             expect(styleObject).toEqual({ backgroundColor: color })
         }
     })
 
     test('all font modifiers', () => {
-        for (const modifier of Object.getOwnPropertyNames(textModifiers)) {
-            if (modifier === 'reset') {
-                continue
-            }
+        for (const modifier of fontStyles) {
             const styleObject = style[modifier]()
             expect(styleObject).toEqual({ fontStyles: [modifier] })
         }
