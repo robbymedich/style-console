@@ -61,6 +61,11 @@ function stylist(
     this: Style,
     ...text: (string | LazyStyledText | LazyStyledText[])[]
 ): Style | LazyStyledText | LazyStyledText[] {
+    if (this === undefined) {
+        throw new Error(
+            'style context not found, did you try to reuse an unsaved style?'
+        )
+    }
     const finalStyles =
         this.fontStyles === undefined || this.fontStyles.length === 0
             ? undefined
@@ -151,14 +156,14 @@ const styleBuilder = (function () {
         Object.defineProperty(build, color, {
             get() {
                 getStyle().textColor = color
-                return this
+                return build
             },
             enumerable: true,
         })
         Object.defineProperty(build, `bg${capitalize(color)}`, {
             get() {
                 getStyle().backgroundColor = color
-                return this
+                return build
             },
             enumerable: true,
         })
@@ -179,7 +184,7 @@ const styleBuilder = (function () {
                 if (!current.fontStyles.includes(modifier)) {
                     current.fontStyles.push(modifier)
                 }
-                return this
+                return build
             },
             enumerable: true,
         })
