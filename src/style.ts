@@ -13,44 +13,6 @@ export type Style = {
 }
 export type LazyStyledText = Prettify<{ text: string } & Style>
 
-export type StringToLazyStyledText = (
-    text: string | LazyStyledText,
-) => LazyStyledText
-export type ArrayToLazyStyledText = (
-    ...text: (string | LazyStyledText | LazyStyledText[])[]
-) => LazyStyledText[]
-
-export type Stylist = (() => Style) &
-    StringToLazyStyledText &
-    ArrayToLazyStyledText
-
-export type StyleBuilderChain = {
-    readonly [key in Color]: InternalBuilder
-} & {
-    readonly [key in BackgroundColor]: InternalBuilder
-} & {
-    readonly [key in FontStyle]: InternalBuilder
-} & (() => Stylist) &
-    StringToLazyStyledText &
-    ArrayToLazyStyledText
-
-const NEW = Symbol('new')
-type InternalBuilder = StyleBuilderChain & {
-    NEW: (style: Style) => InternalBuilder
-}
-
-/* eslint-disable @typescript-eslint/consistent-indexed-object-style */
-export type StyleBuilder = {
-    readonly [key in Color]: InternalBuilder
-} & {
-    readonly [key in BackgroundColor]: InternalBuilder
-} & {
-    readonly [key in FontStyle]: InternalBuilder
-} & {
-    none: (() => Stylist) & StringToLazyStyledText & ArrayToLazyStyledText
-}
-/* eslint-enable @typescript-eslint/consistent-indexed-object-style */
-
 function stylist(): Style
 function stylist(text: string | LazyStyledText): LazyStyledText
 function stylist(
@@ -133,73 +95,83 @@ function capitalize(value: string): string {
     return `${value.slice(0, 1).toUpperCase()}${value.slice(1)}`
 }
 
-const styleBuilder = (function () {
-    const options: Style[] = []
-    const getStyle = () => options[options.length - 1]!
+// Set color options on the builder
+for (const color of Object.getOwnPropertyNames(colors)) {
+    Object.defineProperty(stylist.prototype, color, {
+        get() {
+            this.textColor = color
+            return this
+        },
+        enumerable: true,
+    })
+    Object.defineProperty(stylist.prototype, `bg${capitalize(color)}`, {
+        get() {
+            this.backgroundColor = color
+            return this
+        },
+        enumerable: true,
+    })
+}
 
-    function build(
-        ...text: (string | LazyStyledText | LazyStyledText[])[]
-    ): LazyStyledText[] | LazyStyledText | Stylist {
-        const builtStyle = options.pop()
-        if (text.length > 0) {
-            return stylist.bind(builtStyle)(...text)
-        }
-        return stylist.bind(builtStyle)
+// Set font style options on the builder
+for (const fontStyle of Object.getOwnPropertyNames(textModifiers)) {
+    if (fontStyle === 'reset') {
+        continue // reset is a text modifier but not a font style
     }
-    build.NEW = (style: Style) => {
-        options.push(style)
-        return build
+    Object.defineProperty(stylist.prototype, fontStyle, {
+        get() {
+            if (this.fontStyles === undefined) {
+                this.fontStyles = []
+            }
+            if (!this.fontStyles.includes(fontStyle)) {
+                this.fontStyles.push(fontStyle)
+            }
+            return this
+        },
+        enumerable: true,
+    })
+}
+
+export type Stylist = typeof stylist
+
+export type StyleBuilder = Style & {
+    readonly [key in Color]: StyleBuilder
+} & {
+    readonly [key in BackgroundColor]: StyleBuilder
+} & {
+    readonly [key in FontStyle]: StyleBuilder
+} & Stylist
+
+/* eslint-disable @typescript-eslint/consistent-indexed-object-style */
+export type StyleInitializer = {
+    readonly [key in Color]: StyleBuilder
+} & {
+    readonly [key in BackgroundColor]: StyleBuilder
+} & {
+    readonly [key in FontStyle]: StyleBuilder
+} & {
+    none: Stylist
+}
+/* eslint-enable @typescript-eslint/consistent-indexed-object-style */
+
+function styleBuilder(
+    textColor?: Color,
+    backgroundColor?: Color,
+    fontStyles?: FontStyle[]
+): StyleBuilder {
+    const build = function (
+        ...args: Parameters<Stylist>
+    ): ReturnType<Stylist> {
+        return stylist.call(build, ...args)
     }
 
-    // Set color options on the builder
-    const defineColors = (color: Color) => {
-        Object.defineProperty(build, color, {
-            get() {
-                getStyle().textColor = color
-                return build
-            },
-            enumerable: true,
-        })
-        Object.defineProperty(build, `bg${capitalize(color)}`, {
-            get() {
-                getStyle().backgroundColor = color
-                return build
-            },
-            enumerable: true,
-        })
-    }
-    for (const color of Object.getOwnPropertyNames(colors)) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-        defineColors(color as Color)
-    }
+    Object.setPrototypeOf(build, stylist.prototype)
+    build.textColor = textColor
+    build.backgroundColor = backgroundColor
+    build.fontStyles = fontStyles
 
-    // Set font style options on the builder
-    const defineFontStyle = (modifier: FontStyle) => {
-        Object.defineProperty(build, modifier, {
-            get() {
-                const current = getStyle()
-                if (current.fontStyles === undefined) {
-                    current.fontStyles = []
-                }
-                if (!current.fontStyles.includes(modifier)) {
-                    current.fontStyles.push(modifier)
-                }
-                return build
-            },
-            enumerable: true,
-        })
-    }
-    for (const fontStyle of Object.getOwnPropertyNames(textModifiers)) {
-        if (fontStyle === 'reset') {
-            continue // reset is a text modifier but not a font style
-        }
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-        defineFontStyle(fontStyle as FontStyle)
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    return build as InternalBuilder
-})()
+    return build as StyleBuilder
+}
 
 export const style = (function () {
     const build = {}
@@ -207,48 +179,40 @@ export const style = (function () {
     // set none option
     Object.defineProperty(build, 'none', {
         get() {
-            return styleBuilder.NEW({})
+            return styleBuilder()
         },
         enumerable: true,
     })
 
     // Set color options on the builder
-    const defineColors = (color: Color) => {
+    for (const color of Object.getOwnPropertyNames(colors)) {
         Object.defineProperty(build, color, {
             get() {
-                return styleBuilder.NEW({ textColor: color })
+                return styleBuilder(color as Color)
             },
             enumerable: true,
         })
         Object.defineProperty(build, `bg${capitalize(color)}`, {
             get() {
-                return styleBuilder.NEW({ backgroundColor: color })
+                return styleBuilder(undefined, color as Color)
             },
             enumerable: true,
         })
-    }
-    for (const color of Object.getOwnPropertyNames(colors)) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-        defineColors(color as Color)
     }
 
     // Set font style options on the builder
-    const defineFontStyle = (modifier: FontStyle) => {
-        Object.defineProperty(build, modifier, {
-            get() {
-                return styleBuilder.NEW({ fontStyles: [modifier] })
-            },
-            enumerable: true,
-        })
-    }
     for (const fontStyle of Object.getOwnPropertyNames(textModifiers)) {
         if (fontStyle === 'reset') {
             continue // reset is a text modifier but not a font style
         }
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-        defineFontStyle(fontStyle as FontStyle)
+        Object.defineProperty(build, fontStyle, {
+            get() {
+                return styleBuilder(undefined, undefined, [fontStyle as FontStyle])
+            },
+            enumerable: true,
+        })
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    return build as StyleBuilder
+    return build as StyleInitializer
 })()

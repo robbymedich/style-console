@@ -15,6 +15,7 @@ export const textModifiers = {
     // below is supposed to work in chrome and terminal but doesn't
     overlined: { set: '\x1b[53m', unset: '\x1b[55m' },
 } as const
+// TODO: remove reset since it's never used
 
 export type TextModifier = keyof typeof textModifiers
 export type FontStyle = Exclude<TextModifier, 'reset'>
