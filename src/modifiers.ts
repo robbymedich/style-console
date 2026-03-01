@@ -18,3 +18,19 @@ export const textModifiers = {
 
 export type TextModifier = keyof typeof textModifiers
 export type FontStyle = Exclude<TextModifier, 'reset'>
+
+const invertColor =
+    'rgb(from currentColor calc(255 - r) calc(255 - g) calc(255 - b))'
+export const cssFontStyle: Record<FontStyle, string> = {
+    bold: 'font-weight: bold',
+    dim: 'color: rgb(from currentColor r g b / 0.5)',
+    italic: 'font-style: italic',
+    underline: 'text-decoration: underline',
+    strikethrough: 'text-decoration: line-through',
+    blink: '', // not supported, do nothing
+    hidden: 'color: rgb(from currentColor r g b / 0)',
+    inverse: `color: ${invertColor}; background: ${invertColor}`,
+    doubleunderline: 'text-decoration: underline double',
+    framed: 'padding: 1px; border: 1px solid currentColor',
+    overlined: 'text-decoration: overline',
+} as const

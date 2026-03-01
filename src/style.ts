@@ -13,7 +13,9 @@ export type Style = {
 }
 export type LazyStyledText = Prettify<{ text: string } & Style>
 
-export type StringToLazyStyledText = (text: string | LazyStyledText) => LazyStyledText
+export type StringToLazyStyledText = (
+    text: string | LazyStyledText,
+) => LazyStyledText
 export type ArrayToLazyStyledText = (
     ...text: (string | LazyStyledText | LazyStyledText[])[]
 ) => LazyStyledText[]
@@ -90,10 +92,7 @@ function stylist(
                 fontStyles: finalStyles,
             }
         }
-        if (
-            this.textColor !== undefined &&
-            part.textColor === undefined
-        ) {
+        if (this.textColor !== undefined && part.textColor === undefined) {
             part.textColor = this.textColor
         }
         if (
@@ -102,10 +101,7 @@ function stylist(
         ) {
             part.backgroundColor = this.backgroundColor
         }
-        if (
-            finalStyles !== undefined &&
-            part.fontStyles === undefined
-        ) {
+        if (finalStyles !== undefined && part.fontStyles === undefined) {
             part.fontStyles = finalStyles
         }
         return part
