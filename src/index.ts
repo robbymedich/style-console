@@ -4,8 +4,8 @@ export type {
     Style,
     LazyStyledText,
     Stylist,
-    StyleBuilder,
-    StyleInitializer,
+    StylistBuilder,
+    StylistInitializer,
 } from './style.js'
 export { indent, dedent } from './spacing.js'
 export { colors, colorOption, fontStyles, fontStyleOption } from './options.js'

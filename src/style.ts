@@ -126,31 +126,31 @@ type BackgroundColor = `bg${Capitalize<Color>}`
 
 export type Stylist = typeof stylist
 
-export type StyleBuilder = Style & {
-    readonly [key in Color]: StyleBuilder
+export type StylistBuilder = Style & {
+    readonly [key in Color]: StylistBuilder
 } & {
-    readonly [key in BackgroundColor]: StyleBuilder
+    readonly [key in BackgroundColor]: StylistBuilder
 } & {
-    readonly [key in FontStyle]: StyleBuilder
+    readonly [key in FontStyle]: StylistBuilder
 } & Stylist
 
 /* eslint-disable @typescript-eslint/consistent-indexed-object-style */
-export type StyleInitializer = {
-    readonly [key in Color]: StyleBuilder
+export type StylistInitializer = {
+    readonly [key in Color]: StylistBuilder
 } & {
-    readonly [key in BackgroundColor]: StyleBuilder
+    readonly [key in BackgroundColor]: StylistBuilder
 } & {
-    readonly [key in FontStyle]: StyleBuilder
+    readonly [key in FontStyle]: StylistBuilder
 } & {
     none: Stylist
 }
 /* eslint-enable @typescript-eslint/consistent-indexed-object-style */
 
-function styleBuilder(
+function stylistBuilder(
     textColor?: Color,
     backgroundColor?: Color,
     fontStyles?: FontStyle[],
-): StyleBuilder {
+): StylistBuilder {
     const build = function (...args: Parameters<Stylist>): ReturnType<Stylist> {
         return stylist.call(build, ...args)
     }
@@ -161,7 +161,7 @@ function styleBuilder(
     build.fontStyles = fontStyles
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    return build as StyleBuilder
+    return build as StylistBuilder
 }
 
 export const style = (function () {
@@ -170,7 +170,7 @@ export const style = (function () {
     // set none option
     Object.defineProperty(build, 'none', {
         get() {
-            return styleBuilder()
+            return stylistBuilder()
         },
         enumerable: true,
     })
@@ -179,13 +179,13 @@ export const style = (function () {
     for (const color of colors) {
         Object.defineProperty(build, color, {
             get() {
-                return styleBuilder(color)
+                return stylistBuilder(color)
             },
             enumerable: true,
         })
         Object.defineProperty(build, `bg${capitalize(color)}`, {
             get() {
-                return styleBuilder(undefined, color)
+                return stylistBuilder(undefined, color)
             },
             enumerable: true,
         })
@@ -195,12 +195,12 @@ export const style = (function () {
     for (const fontStyle of fontStyles) {
         Object.defineProperty(build, fontStyle, {
             get() {
-                return styleBuilder(undefined, undefined, [fontStyle])
+                return stylistBuilder(undefined, undefined, [fontStyle])
             },
             enumerable: true,
         })
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    return build as StyleInitializer
+    return build as StylistInitializer
 })()

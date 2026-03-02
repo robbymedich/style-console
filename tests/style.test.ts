@@ -3,6 +3,11 @@ import { colors, fontStyles } from '../src/options.ts'
 import { style } from '../src/style'
 import type { LazyStyledText } from '../src/style.ts'
 
+// perform unsafe casting to test edge cases people will do even though it
+// doesn't align to the proper types
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion  */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 describe('style no arguments', () => {
     test('all text colors', () => {
         for (const color of colors) {
@@ -103,17 +108,136 @@ describe('style single argument', () => {
         expect(style.blue(greenText)).toEqual(expected)
     })
 
-    test('list of strings', () => {})
+    test('list of strings', () => {
+        expect(style.red(['one', 'two', 'three'] as any[])).toEqual([
+            { text: 'one', textColor: 'red' },
+            { text: 'two', textColor: 'red' },
+            { text: 'three', textColor: 'red' },
+        ])
 
-    test('list of lazy styled text', () => {})
+        expect(style.none(['one', 'two', 'three'] as any[])).toEqual([
+            { text: 'one' },
+            { text: 'two' },
+            { text: 'three' },
+        ])
+    })
 
-    test('mixed list', () => {})
+    test('list of lazy styled text', () => {
+        expect(
+            style.red([{ text: 'one' }, { text: 'two' }, { text: 'three' }]),
+        ).toEqual([
+            { text: 'one', textColor: 'red' },
+            { text: 'two', textColor: 'red' },
+            { text: 'three', textColor: 'red' },
+        ])
 
-    test('list of lists', () => {})
+        expect(
+            style.bgBlue([
+                { text: 'one', textColor: 'red' },
+                { text: 'two', textColor: 'red' },
+                { text: 'three', textColor: 'red' },
+            ]),
+        ).toEqual([
+            { text: 'one', textColor: 'red', backgroundColor: 'blue' },
+            { text: 'two', textColor: 'red', backgroundColor: 'blue' },
+            { text: 'three', textColor: 'red', backgroundColor: 'blue' },
+        ])
+    })
+
+    test('mixed list', () => {
+        expect(
+            style.bgBlue([
+                'one',
+                { text: 'two' },
+                { text: 'three', textColor: 'red' },
+            ] as any[]),
+        ).toEqual([
+            { text: 'one', backgroundColor: 'blue' },
+            { text: 'two', backgroundColor: 'blue' },
+            { text: 'three', textColor: 'red', backgroundColor: 'blue' },
+        ])
+    })
 
     test('no style', () => {
         expect(style.none('hello world')).toEqual({ text: 'hello world' })
         const none = style.none
         expect(none('hello world')).toEqual({ text: 'hello world' })
+    })
+})
+
+describe('style multiple arguments', () => {
+    test('multiple string', () => {
+        expect(style.red('one', 'two', 'three')).toEqual([
+            { text: 'one', textColor: 'red' },
+            { text: 'two', textColor: 'red' },
+            { text: 'three', textColor: 'red' },
+        ])
+
+        expect(style.none('one', 'two', 'three')).toEqual([
+            { text: 'one' },
+            { text: 'two' },
+            { text: 'three' },
+        ])
+    })
+
+    test('multiple lazy styled text', () => {
+        expect(
+            style.red({ text: 'one' }, { text: 'two' }, { text: 'three' }),
+        ).toEqual([
+            { text: 'one', textColor: 'red' },
+            { text: 'two', textColor: 'red' },
+            { text: 'three', textColor: 'red' },
+        ])
+
+        expect(
+            style.bgBlue([
+                { text: 'one', textColor: 'red' },
+                { text: 'two', textColor: 'red' },
+                { text: 'three', textColor: 'red' },
+            ]),
+        ).toEqual([
+            { text: 'one', textColor: 'red', backgroundColor: 'blue' },
+            { text: 'two', textColor: 'red', backgroundColor: 'blue' },
+            { text: 'three', textColor: 'red', backgroundColor: 'blue' },
+        ])
+    })
+
+    test('multiple mixed', () => {
+        expect(
+            style.bgBlue(
+                'one',
+                { text: 'two' },
+                { text: 'three', textColor: 'red' },
+            ),
+        ).toEqual([
+            { text: 'one', backgroundColor: 'blue' },
+            { text: 'two', backgroundColor: 'blue' },
+            { text: 'three', textColor: 'red', backgroundColor: 'blue' },
+        ])
+    })
+
+    test('no style', () => {
+        expect(style.none('hello', 'world')).toEqual([
+            { text: 'hello' },
+            { text: 'world' },
+        ])
+        const none = style.none
+        expect(none('hello', 'world')).toEqual([
+            { text: 'hello' },
+            { text: 'world' },
+        ])
+    })
+
+    test('multiple mixed lists', () => {
+        expect(
+            style.red(['one'] as any[], [
+                { text: 'two' },
+                { text: 'three', backgroundColor: 'green' },
+            ]),
+        ).toEqual([
+            { text: 'one', textColor: 'red' },
+            { text: 'two', textColor: 'red' },
+            { text: 'three', textColor: 'red', backgroundColor: 'green' },
+        ])
     })
 })
