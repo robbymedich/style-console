@@ -65,9 +65,19 @@ export const colorOption = {
     },
 } as const
 
+// used to stay in sync with BackgroundColor type with Object.defineProperty
+export function capitalize(value: string): string {
+    return `${value.slice(0, 1).toUpperCase()}${value.slice(1)}`
+}
+
 export type Color = keyof typeof colorOption
+export type BackgroundColor = `bg${Capitalize<Color>}`
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
 export const colors = Object.getOwnPropertyNames(colorOption) as Color[]
+// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+export const backgroundColors = colors.map(
+    (color) => `bg${capitalize(color)}`,
+) as BackgroundColor[]
 
 const invertColor =
     'rgb(from currentColor calc(255 - r) calc(255 - g) calc(255 - b))'
@@ -125,3 +135,5 @@ export type FontStyle = keyof typeof fontStyleOption
 export const fontStyles = Object.getOwnPropertyNames(
     fontStyleOption,
 ) as FontStyle[]
+
+// TODO: support rgb / hex colors

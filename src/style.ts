@@ -1,5 +1,5 @@
-import type { Color, FontStyle } from './options.js'
-import { colors, fontStyles } from './options.js'
+import type { Color, BackgroundColor, FontStyle } from './options.js'
+import { colors, fontStyles, capitalize } from './options.js'
 
 type Prettify<T> = { [key in keyof T]: T[key] } & {}
 export type Style = {
@@ -83,11 +83,6 @@ function stylist(
     return results
 }
 
-// used to stay in sync with BackgroundColor type with Object.defineProperty
-function capitalize(value: string): string {
-    return `${value.slice(0, 1).toUpperCase()}${value.slice(1)}`
-}
-
 // Set color options on the builder
 for (const color of colors) {
     Object.defineProperty(stylist.prototype, color, {
@@ -121,8 +116,6 @@ for (const fontStyle of fontStyles) {
         enumerable: true,
     })
 }
-
-type BackgroundColor = `bg${Capitalize<Color>}`
 
 export type Stylist = typeof stylist
 

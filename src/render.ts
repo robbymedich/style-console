@@ -7,6 +7,7 @@ export function stripAnsi(text: string): string {
     return text.replaceAll(/\x1b\[\d+m/gu, '')
 }
 
+// eslint-disable-next-line complexity
 export function renderAnsi(
     text: (LazyStyledText | string)[] | LazyStyledText | string,
 ): string {
@@ -66,33 +67,11 @@ export function renderAnsi(
     return final.join('')
 }
 
-function css(
+export function cssStyle(
     textColor?: Color,
     backgroundColor?: Color,
     fontStyles?: FontStyle[],
 ): string {
-    if (
-        textColor === undefined &&
-        backgroundColor === undefined &&
-        fontStyles === undefined
-    ) {
-        return ''
-    }
-    if (
-        textColor !== undefined &&
-        backgroundColor === undefined &&
-        fontStyles === undefined
-    ) {
-        return `color: ${textColor}`
-    }
-    if (
-        textColor === undefined &&
-        backgroundColor !== undefined &&
-        fontStyles === undefined
-    ) {
-        return `background: ${textColor}`
-    }
-
     const cssStyles: string[] = []
     if (textColor !== undefined) {
         cssStyles.push(`color: ${textColor}`)
@@ -109,9 +88,26 @@ function css(
     return cssStyles.join('; ')
 }
 
-// stripWeb
-// pattern below can be used as a base to ensure web styles are stripped
-// (?:^|[^%])(%%)*%c
+export function stripWeb(text: string): string {
+    const stylePattern = /(?<p>^|[^%])((?<keep>(%%)+)(?<c>c)?)|(?<strip>%c)/g
+    const parts: string[] = []
+    let cursor = 0
+
+    for (const reMatch of text.matchAll(stylePattern)) {
+        parts.push(text.slice(cursor, reMatch.index))
+
+        const { p, keep, c } = reMatch.groups!
+        if (keep !== undefined && keep !== '') {
+            parts.push(`${p ?? ''}${'%'.repeat(keep.length / 2)}${c ?? ''}`)
+        }
+        cursor = reMatch.index + reMatch[0].length
+    }
+
+    if (cursor < text.length) {
+        parts.push(text.slice(cursor))
+    }
+    return parts.join('')
+}
 
 export function renderWeb(
     text: (LazyStyledText | string)[] | LazyStyledText | string,
@@ -133,12 +129,27 @@ export function renderWeb(
             textColor = part.textColor
             backgroundColor = part.backgroundColor
             fontStyles = part.fontStyles
+
             final.push('%c')
-            args.push(css(textColor, backgroundColor, fontStyles))
+            args.push(cssStyle(textColor, backgroundColor, fontStyles))
         }
-        final.push(part.text.replace(/(%+)c/g, '$1$1c'))
+        final.push(part.text.replace(/(%+)(c)?/g, '$1$1$2'))
     }
 
-    args[0] = final.join('') // replace with final string
+    // replace args[0] with final string
+    const styledText = final.join('')
+    if (args.length === 1) {
+        // escape sequences are only handled consistently if styling is used
+        // args.length === 1 only happens if no styles were passed to render
+        //
+        // Safari requires valid CSS to be passed or else it's escape sequence
+        // handling still differs from other browers
+        args[0] = `%c${styledText}`
+        args.push('color: currentColor')
+    } else {
+        args[0] = styledText
+    }
     return args
 }
+
+// TODO: create detect and logging options
