@@ -197,3 +197,8 @@ export const style = (function () {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     return build as StylistInitializer
 })()
+
+export function createStylist(style: Style): Stylist {
+    const { textColor, backgroundColor, fontStyles } = style
+    return stylistBuilder(textColor, backgroundColor, fontStyles)
+}

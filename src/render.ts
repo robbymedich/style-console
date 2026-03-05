@@ -74,10 +74,10 @@ export function cssStyle(
 ): string {
     const cssStyles: string[] = []
     if (textColor !== undefined) {
-        cssStyles.push(`color: ${textColor}`)
+        cssStyles.push(colorOption[textColor].text.css)
     }
     if (backgroundColor !== undefined) {
-        cssStyles.push(`background: ${backgroundColor}`)
+        cssStyles.push(colorOption[backgroundColor].background.css)
     }
     if (fontStyles !== undefined) {
         for (const fontStyle of fontStyles) {

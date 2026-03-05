@@ -15,7 +15,7 @@ export {
     fontStyles,
     fontStyleOption,
 } from './options.js'
-export { style } from './style.js'
+export { style, createStylist } from './style.js'
 export {
     stripAnsi,
     renderAnsi,

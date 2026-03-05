@@ -1,67 +1,294 @@
-export const colorOption = {
+const cssColorTheme = {
     black: {
-        text: { set: '\x1b[30m', unset: '\x1b[39m' },
-        background: { set: '\x1b[40m', unset: '\x1b[49m' },
+        chromeLight: '#000000',
+        chromeDark: '#000000',
+        macOS: '#000000',
+        default: '#000000',
     },
     white: {
-        text: { set: '\x1b[97m', unset: '\x1b[39m' },
-        background: { set: '\x1b[107m', unset: '\x1b[49m' },
+        chromeLight: '#FFFFFF',
+        chromeDark: '#FFFFFF',
+        macOS: '#E2E2E2',
+        default: '#E2E2E2',
     },
     grey: {
-        text: { set: '\x1b[90m', unset: '\x1b[39m' },
-        background: { set: '\x1b[100m', unset: '\x1b[49m' },
+        chromeLight: '#555555',
+        chromeDark: '#898989',
+        macOS: '#5B5B5B',
+        default: '#777777',
     },
     greyBright: {
-        text: { set: '\x1b[37m', unset: '\x1b[39m' },
-        background: { set: '\x1b[47m', unset: '\x1b[49m' },
+        chromeLight: '#AAAAAA',
+        chromeDark: '#cfd0d0',
+        macOS: '#B7B7B7',
+        default: '#B7B7B7',
     },
     blue: {
-        text: { set: '\x1b[34m', unset: '\x1b[39m' },
-        background: { set: '\x1b[44m', unset: '\x1b[49m' },
+        chromeLight: '#0000AA',
+        chromeDark: '#2774f0',
+        macOS: '#0006A3',
+        default: '#0954F6',
     },
     blueBright: {
-        text: { set: '\x1b[94m', unset: '\x1b[39m' },
-        background: { set: '\x1b[104m', unset: '\x1b[49m' },
+        chromeLight: '#5555FF',
+        chromeDark: '#669df6',
+        macOS: '#0006F6',
+        default: '#0088ff',
     },
     cyan: {
-        text: { set: '\x1b[36m', unset: '\x1b[39m' },
-        background: { set: '\x1b[46m', unset: '\x1b[49m' },
+        chromeLight: '#00AAAA',
+        chromeDark: '#12b5cb',
+        macOS: '#1B9BA8',
+        default: '#1B9BA8',
     },
     cyanBright: {
-        text: { set: '\x1b[96m', unset: '\x1b[39m' },
-        background: { set: '\x1b[106m', unset: '\x1b[49m' },
+        chromeLight: '#55FFFF',
+        chromeDark: '#84f0ff',
+        macOS: '#28E0E1',
+        default: '#28E0E1',
     },
     green: {
-        text: { set: '\x1b[32m', unset: '\x1b[39m' },
-        background: { set: '\x1b[42m', unset: '\x1b[49m' },
+        chromeLight: '#00AA00',
+        chromeDark: '#01c800',
+        macOS: '#1C9B26',
+        default: '#1C9B26',
     },
     greenBright: {
-        text: { set: '\x1b[92m', unset: '\x1b[39m' },
-        background: { set: '\x1b[102m', unset: '\x1b[49m' },
+        chromeLight: '#55FF55',
+        chromeDark: '#01c801',
+        macOS: '#26D233',
+        default: '#26D233',
     },
     magenta: {
-        text: { set: '\x1b[35m', unset: '\x1b[39m' },
-        background: { set: '\x1b[45m', unset: '\x1b[49m' },
+        chromeLight: '#AA00AA',
+        chromeDark: '#a142f4',
+        macOS: '#A612A4',
+        default: '#A612A4',
     },
     magentaBright: {
-        text: { set: '\x1b[95m', unset: '\x1b[39m' },
-        background: { set: '\x1b[105m', unset: '\x1b[49m' },
+        chromeLight: '#FF55FF',
+        chromeDark: '#d670d6',
+        macOS: '#DE19DB',
+        default: '#DE19DB',
     },
     red: {
-        text: { set: '\x1b[31m', unset: '\x1b[39m' },
-        background: { set: '\x1b[41m', unset: '\x1b[49m' },
+        chromeLight: '#AA0000',
+        chromeDark: '#ed4e4c',
+        macOS: '#8C0F0D',
+        default: '#B83424',
     },
     redBright: {
-        text: { set: '\x1b[91m', unset: '\x1b[39m' },
-        background: { set: '\x1b[101m', unset: '\x1b[49m' },
+        chromeLight: '#FF5555',
+        chromeDark: '#f28b82',
+        macOS: '#DE1715',
+        default: '#FB3A26',
     },
     yellow: {
-        text: { set: '\x1b[33m', unset: '\x1b[39m' },
-        background: { set: '\x1b[43m', unset: '\x1b[49m' },
+        chromeLight: '#AA5500',
+        chromeDark: '#d2c057',
+        macOS: '#8E8E25',
+        default: '#A5A436',
     },
     yellowBright: {
-        text: { set: '\x1b[93m', unset: '\x1b[39m' },
-        background: { set: '\x1b[103m', unset: '\x1b[49m' },
+        chromeLight: '#FFFF55',
+        chromeDark: '#ddfb55',
+        macOS: '#E2E23B',
+        default: '#EAE940',
+    },
+}
+const currentTheme = 'default'
+export const colorOption = {
+    black: {
+        text: {
+            set: '\x1b[30m',
+            unset: '\x1b[39m',
+            css: `color: ${cssColorTheme.black[currentTheme]}`,
+        },
+        background: {
+            set: '\x1b[40m',
+            unset: '\x1b[49m',
+            css: `background: ${cssColorTheme.black[currentTheme]}`,
+        },
+    },
+    white: {
+        text: {
+            set: '\x1b[97m',
+            unset: '\x1b[39m',
+            css: `color: ${cssColorTheme.white[currentTheme]}`,
+        },
+        background: {
+            set: '\x1b[107m',
+            unset: '\x1b[49m',
+            css: `background: ${cssColorTheme.white[currentTheme]}`,
+        },
+    },
+    grey: {
+        text: {
+            set: '\x1b[90m',
+            unset: '\x1b[39m',
+            css: `color: ${cssColorTheme.grey[currentTheme]}`,
+        },
+        background: {
+            set: '\x1b[100m',
+            unset: '\x1b[49m',
+            css: `background: ${cssColorTheme.grey[currentTheme]}`,
+        },
+    },
+    greyBright: {
+        text: {
+            set: '\x1b[37m',
+            unset: '\x1b[39m',
+            css: `color: ${cssColorTheme.greyBright[currentTheme]}`,
+        },
+        background: {
+            set: '\x1b[47m',
+            unset: '\x1b[49m',
+            css: `background: ${cssColorTheme.greyBright[currentTheme]}`,
+        },
+    },
+    blue: {
+        text: {
+            set: '\x1b[34m',
+            unset: '\x1b[39m',
+            css: `color: ${cssColorTheme.blue[currentTheme]}`,
+        },
+        background: {
+            set: '\x1b[44m',
+            unset: '\x1b[49m',
+            css: `background: ${cssColorTheme.blue[currentTheme]}`,
+        },
+    },
+    blueBright: {
+        text: {
+            set: '\x1b[94m',
+            unset: '\x1b[39m',
+            css: `color: ${cssColorTheme.blueBright[currentTheme]}`,
+        },
+        background: {
+            set: '\x1b[104m',
+            unset: '\x1b[49m',
+            css: `background: ${cssColorTheme.blueBright[currentTheme]}`,
+        },
+    },
+    cyan: {
+        text: {
+            set: '\x1b[36m',
+            unset: '\x1b[39m',
+            css: `color: ${cssColorTheme.cyan[currentTheme]}`,
+        },
+        background: {
+            set: '\x1b[46m',
+            unset: '\x1b[49m',
+            css: `background: ${cssColorTheme.cyan[currentTheme]}`,
+        },
+    },
+    cyanBright: {
+        text: {
+            set: '\x1b[96m',
+            unset: '\x1b[39m',
+            css: `color: ${cssColorTheme.cyanBright[currentTheme]}`,
+        },
+        background: {
+            set: '\x1b[106m',
+            unset: '\x1b[49m',
+            css: `background: ${cssColorTheme.cyanBright[currentTheme]}`,
+        },
+    },
+    green: {
+        text: {
+            set: '\x1b[32m',
+            unset: '\x1b[39m',
+            css: `color: ${cssColorTheme.green[currentTheme]}`,
+        },
+        background: {
+            set: '\x1b[42m',
+            unset: '\x1b[49m',
+            css: `background: ${cssColorTheme.green[currentTheme]}`,
+        },
+    },
+    greenBright: {
+        text: {
+            set: '\x1b[92m',
+            unset: '\x1b[39m',
+            css: `color: ${cssColorTheme.greenBright[currentTheme]}`,
+        },
+        background: {
+            set: '\x1b[102m',
+            unset: '\x1b[49m',
+            css: `background: ${cssColorTheme.greenBright[currentTheme]}`,
+        },
+    },
+    magenta: {
+        text: {
+            set: '\x1b[35m',
+            unset: '\x1b[39m',
+            css: `color: ${cssColorTheme.magenta[currentTheme]}`,
+        },
+        background: {
+            set: '\x1b[45m',
+            unset: '\x1b[49m',
+            css: `background: ${cssColorTheme.magenta[currentTheme]}`,
+        },
+    },
+    magentaBright: {
+        text: {
+            set: '\x1b[95m',
+            unset: '\x1b[39m',
+            css: `color: ${cssColorTheme.magentaBright[currentTheme]}`,
+        },
+        background: {
+            set: '\x1b[105m',
+            unset: '\x1b[49m',
+            css: `background: ${cssColorTheme.magentaBright[currentTheme]}`,
+        },
+    },
+    red: {
+        text: {
+            set: '\x1b[31m',
+            unset: '\x1b[39m',
+            css: `color: ${cssColorTheme.red[currentTheme]}`,
+        },
+        background: {
+            set: '\x1b[41m',
+            unset: '\x1b[49m',
+            css: `background: ${cssColorTheme.red[currentTheme]}`,
+        },
+    },
+    redBright: {
+        text: {
+            set: '\x1b[91m',
+            unset: '\x1b[39m',
+            css: `color: ${cssColorTheme.redBright[currentTheme]}`,
+        },
+        background: {
+            set: '\x1b[101m',
+            unset: '\x1b[49m',
+            css: `background: ${cssColorTheme.redBright[currentTheme]}`,
+        },
+    },
+    yellow: {
+        text: {
+            set: '\x1b[33m',
+            unset: '\x1b[39m',
+            css: `color: ${cssColorTheme.yellow[currentTheme]}`,
+        },
+        background: {
+            set: '\x1b[43m',
+            unset: '\x1b[49m',
+            css: `background: ${cssColorTheme.yellow[currentTheme]}`,
+        },
+    },
+    yellowBright: {
+        text: {
+            set: '\x1b[93m',
+            unset: '\x1b[39m',
+            css: `color: ${cssColorTheme.yellowBright[currentTheme]}`,
+        },
+        background: {
+            set: '\x1b[103m',
+            unset: '\x1b[49m',
+            css: `background: ${cssColorTheme.yellowBright[currentTheme]}`,
+        },
     },
 } as const
 
