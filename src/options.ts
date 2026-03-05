@@ -1,293 +1,212 @@
 const cssColorTheme = {
-    black: {
-        chromeLight: '#000000',
-        chromeDark: '#000000',
-        macOS: '#000000',
-        default: '#000000',
-    },
-    white: {
-        chromeLight: '#FFFFFF',
-        chromeDark: '#FFFFFF',
-        macOS: '#E2E2E2',
-        default: '#E2E2E2',
-    },
-    grey: {
-        chromeLight: '#555555',
-        chromeDark: '#898989',
-        macOS: '#5B5B5B',
-        default: '#777777',
-    },
-    greyBright: {
-        chromeLight: '#AAAAAA',
-        chromeDark: '#cfd0d0',
-        macOS: '#B7B7B7',
-        default: '#B7B7B7',
-    },
-    blue: {
-        chromeLight: '#0000AA',
-        chromeDark: '#2774f0',
-        macOS: '#0006A3',
-        default: '#0954F6',
-    },
-    blueBright: {
-        chromeLight: '#5555FF',
-        chromeDark: '#669df6',
-        macOS: '#0006F6',
-        default: '#0088ff',
-    },
-    cyan: {
-        chromeLight: '#00AAAA',
-        chromeDark: '#12b5cb',
-        macOS: '#1B9BA8',
-        default: '#1B9BA8',
-    },
-    cyanBright: {
-        chromeLight: '#55FFFF',
-        chromeDark: '#84f0ff',
-        macOS: '#28E0E1',
-        default: '#28E0E1',
-    },
-    green: {
-        chromeLight: '#00AA00',
-        chromeDark: '#01c800',
-        macOS: '#1C9B26',
-        default: '#1C9B26',
-    },
-    greenBright: {
-        chromeLight: '#55FF55',
-        chromeDark: '#01c801',
-        macOS: '#26D233',
-        default: '#26D233',
-    },
-    magenta: {
-        chromeLight: '#AA00AA',
-        chromeDark: '#a142f4',
-        macOS: '#A612A4',
-        default: '#A612A4',
-    },
-    magentaBright: {
-        chromeLight: '#FF55FF',
-        chromeDark: '#d670d6',
-        macOS: '#DE19DB',
-        default: '#DE19DB',
-    },
-    red: {
-        chromeLight: '#AA0000',
-        chromeDark: '#ed4e4c',
-        macOS: '#8C0F0D',
-        default: '#B83424',
-    },
-    redBright: {
-        chromeLight: '#FF5555',
-        chromeDark: '#f28b82',
-        macOS: '#DE1715',
-        default: '#FB3A26',
-    },
-    yellow: {
-        chromeLight: '#AA5500',
-        chromeDark: '#d2c057',
-        macOS: '#8E8E25',
-        default: '#A5A436',
-    },
-    yellowBright: {
-        chromeLight: '#FFFF55',
-        chromeDark: '#ddfb55',
-        macOS: '#E2E23B',
-        default: '#EAE940',
-    },
+    black: '#000000',
+    white: '#E5E5E5',
+    grey: '#777777',
+    greyBright: '#B7B7B7',
+    blue: '#0A3CD2',
+    blueBright: '#0A78FF',
+    cyan: '#1E9BA5',
+    cyanBright: '#1EC8D2',
+    green: '#239B32',
+    greenBright: '#23D232',
+    magenta: '#9B46A5',
+    magentaBright: '#C846D2',
+    red: '#9B2319',
+    redBright: '#D22319',
+    yellow: '#9B9100',
+    yellowBright: '#D2C800',
 }
-const currentTheme = 'default'
 export const colorOption = {
     black: {
         text: {
             set: '\x1b[30m',
             unset: '\x1b[39m',
-            css: `color: ${cssColorTheme.black[currentTheme]}`,
+            css: `color: ${cssColorTheme.black}`,
         },
         background: {
             set: '\x1b[40m',
             unset: '\x1b[49m',
-            css: `background: ${cssColorTheme.black[currentTheme]}`,
+            css: `background: ${cssColorTheme.black}`,
         },
     },
     white: {
         text: {
             set: '\x1b[97m',
             unset: '\x1b[39m',
-            css: `color: ${cssColorTheme.white[currentTheme]}`,
+            css: `color: ${cssColorTheme.white}`,
         },
         background: {
             set: '\x1b[107m',
             unset: '\x1b[49m',
-            css: `background: ${cssColorTheme.white[currentTheme]}`,
+            css: `background: ${cssColorTheme.white}`,
         },
     },
     grey: {
         text: {
             set: '\x1b[90m',
             unset: '\x1b[39m',
-            css: `color: ${cssColorTheme.grey[currentTheme]}`,
+            css: `color: ${cssColorTheme.grey}`,
         },
         background: {
             set: '\x1b[100m',
             unset: '\x1b[49m',
-            css: `background: ${cssColorTheme.grey[currentTheme]}`,
+            css: `background: ${cssColorTheme.grey}`,
         },
     },
     greyBright: {
         text: {
             set: '\x1b[37m',
             unset: '\x1b[39m',
-            css: `color: ${cssColorTheme.greyBright[currentTheme]}`,
+            css: `color: ${cssColorTheme.greyBright}`,
         },
         background: {
             set: '\x1b[47m',
             unset: '\x1b[49m',
-            css: `background: ${cssColorTheme.greyBright[currentTheme]}`,
+            css: `background: ${cssColorTheme.greyBright}`,
         },
     },
     blue: {
         text: {
             set: '\x1b[34m',
             unset: '\x1b[39m',
-            css: `color: ${cssColorTheme.blue[currentTheme]}`,
+            css: `color: ${cssColorTheme.blue}`,
         },
         background: {
             set: '\x1b[44m',
             unset: '\x1b[49m',
-            css: `background: ${cssColorTheme.blue[currentTheme]}`,
+            css: `background: ${cssColorTheme.blue}`,
         },
     },
     blueBright: {
         text: {
             set: '\x1b[94m',
             unset: '\x1b[39m',
-            css: `color: ${cssColorTheme.blueBright[currentTheme]}`,
+            css: `color: ${cssColorTheme.blueBright}`,
         },
         background: {
             set: '\x1b[104m',
             unset: '\x1b[49m',
-            css: `background: ${cssColorTheme.blueBright[currentTheme]}`,
+            css: `background: ${cssColorTheme.blueBright}`,
         },
     },
     cyan: {
         text: {
             set: '\x1b[36m',
             unset: '\x1b[39m',
-            css: `color: ${cssColorTheme.cyan[currentTheme]}`,
+            css: `color: ${cssColorTheme.cyan}`,
         },
         background: {
             set: '\x1b[46m',
             unset: '\x1b[49m',
-            css: `background: ${cssColorTheme.cyan[currentTheme]}`,
+            css: `background: ${cssColorTheme.cyan}`,
         },
     },
     cyanBright: {
         text: {
             set: '\x1b[96m',
             unset: '\x1b[39m',
-            css: `color: ${cssColorTheme.cyanBright[currentTheme]}`,
+            css: `color: ${cssColorTheme.cyanBright}`,
         },
         background: {
             set: '\x1b[106m',
             unset: '\x1b[49m',
-            css: `background: ${cssColorTheme.cyanBright[currentTheme]}`,
+            css: `background: ${cssColorTheme.cyanBright}`,
         },
     },
     green: {
         text: {
             set: '\x1b[32m',
             unset: '\x1b[39m',
-            css: `color: ${cssColorTheme.green[currentTheme]}`,
+            css: `color: ${cssColorTheme.green}`,
         },
         background: {
             set: '\x1b[42m',
             unset: '\x1b[49m',
-            css: `background: ${cssColorTheme.green[currentTheme]}`,
+            css: `background: ${cssColorTheme.green}`,
         },
     },
     greenBright: {
         text: {
             set: '\x1b[92m',
             unset: '\x1b[39m',
-            css: `color: ${cssColorTheme.greenBright[currentTheme]}`,
+            css: `color: ${cssColorTheme.greenBright}`,
         },
         background: {
             set: '\x1b[102m',
             unset: '\x1b[49m',
-            css: `background: ${cssColorTheme.greenBright[currentTheme]}`,
+            css: `background: ${cssColorTheme.greenBright}`,
         },
     },
     magenta: {
         text: {
             set: '\x1b[35m',
             unset: '\x1b[39m',
-            css: `color: ${cssColorTheme.magenta[currentTheme]}`,
+            css: `color: ${cssColorTheme.magenta}`,
         },
         background: {
             set: '\x1b[45m',
             unset: '\x1b[49m',
-            css: `background: ${cssColorTheme.magenta[currentTheme]}`,
+            css: `background: ${cssColorTheme.magenta}`,
         },
     },
     magentaBright: {
         text: {
             set: '\x1b[95m',
             unset: '\x1b[39m',
-            css: `color: ${cssColorTheme.magentaBright[currentTheme]}`,
+            css: `color: ${cssColorTheme.magentaBright}`,
         },
         background: {
             set: '\x1b[105m',
             unset: '\x1b[49m',
-            css: `background: ${cssColorTheme.magentaBright[currentTheme]}`,
+            css: `background: ${cssColorTheme.magentaBright}`,
         },
     },
     red: {
         text: {
             set: '\x1b[31m',
             unset: '\x1b[39m',
-            css: `color: ${cssColorTheme.red[currentTheme]}`,
+            css: `color: ${cssColorTheme.red}`,
         },
         background: {
             set: '\x1b[41m',
             unset: '\x1b[49m',
-            css: `background: ${cssColorTheme.red[currentTheme]}`,
+            css: `background: ${cssColorTheme.red}`,
         },
     },
     redBright: {
         text: {
             set: '\x1b[91m',
             unset: '\x1b[39m',
-            css: `color: ${cssColorTheme.redBright[currentTheme]}`,
+            css: `color: ${cssColorTheme.redBright}`,
         },
         background: {
             set: '\x1b[101m',
             unset: '\x1b[49m',
-            css: `background: ${cssColorTheme.redBright[currentTheme]}`,
+            css: `background: ${cssColorTheme.redBright}`,
         },
     },
     yellow: {
         text: {
             set: '\x1b[33m',
             unset: '\x1b[39m',
-            css: `color: ${cssColorTheme.yellow[currentTheme]}`,
+            css: `color: ${cssColorTheme.yellow}`,
         },
         background: {
             set: '\x1b[43m',
             unset: '\x1b[49m',
-            css: `background: ${cssColorTheme.yellow[currentTheme]}`,
+            css: `background: ${cssColorTheme.yellow}`,
         },
     },
     yellowBright: {
         text: {
             set: '\x1b[93m',
             unset: '\x1b[39m',
-            css: `color: ${cssColorTheme.yellowBright[currentTheme]}`,
+            css: `color: ${cssColorTheme.yellowBright}`,
         },
         background: {
             set: '\x1b[103m',
             unset: '\x1b[49m',
-            css: `background: ${cssColorTheme.yellowBright[currentTheme]}`,
+            css: `background: ${cssColorTheme.yellowBright}`,
         },
     },
 } as const
