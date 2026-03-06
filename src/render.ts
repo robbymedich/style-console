@@ -73,6 +73,9 @@ export function cssStyle(
     fontStyles?: FontStyle[],
 ): string {
     const cssStyles: string[] = []
+    const textDecoration: string[] = []
+    let doubleUnderline = false
+
     if (textColor !== undefined) {
         cssStyles.push(colorOption[textColor].text.css)
     }
@@ -81,9 +84,32 @@ export function cssStyle(
     }
     if (fontStyles !== undefined) {
         for (const fontStyle of fontStyles) {
-            // TODO: must adjust text decoration styles
-            cssStyles.push(fontStyleOption[fontStyle].css)
+            if (
+                fontStyle === 'underline' ||
+                fontStyle === 'strikethrough' ||
+                fontStyle === 'overlined'
+            ) {
+                textDecoration.push(fontStyleOption[fontStyle].css)
+            } else if (fontStyle === 'doubleunderline') {
+                doubleUnderline = true
+            } else {
+                cssStyles.push(fontStyleOption[fontStyle].css)
+            }
         }
+    }
+    if (doubleUnderline === true) {
+        if (textDecoration.length > 0) {
+            // browsers do not support if multiple text-decoration-line sytles
+            // are used... falling back to single underline
+            if (!textDecoration.includes('underline')) {
+                textDecoration.push(fontStyleOption['underline'].css)
+            }
+        } else {
+            textDecoration.push(fontStyleOption['doubleunderline'].css)
+        }
+    }
+    if ( textDecoration.length > 0 ) {
+        cssStyles.push(`text-decoration: ${textDecoration.join(' ')}`)
     }
     return cssStyles.join('; ')
 }
