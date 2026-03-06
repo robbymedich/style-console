@@ -67,50 +67,141 @@ export function renderAnsi(
     return final.join('')
 }
 
+const cssColorTheme = {
+    black: '#000000',
+    white: '#E5E5E5',
+    grey: '#777777',
+    greyBright: '#B7B7B7',
+    blue: '#0A3CD2',
+    blueBright: '#0A78FF',
+    cyan: '#1E9BA5',
+    cyanBright: '#1EC8D2',
+    green: '#239B32',
+    greenBright: '#23D232',
+    magenta: '#9B46A5',
+    magentaBright: '#C846D2',
+    red: '#9B2319',
+    redBright: '#D22319',
+    yellow: '#9B9100',
+    yellowBright: '#D2C800',
+} as const
+
+function invert(color: string, dimText = false): string {
+    const dim = dimText ? ' / 0.5' : ''
+    return `rgb(from ${color} calc(255 - r) calc(255 - g) calc(255 - b)${dim})`
+}
+
+function dimColor(color: string): string {
+    return `rgb(from ${color} r g b) / 0.5)`
+}
+
 export function cssStyle(
     textColor?: Color,
     backgroundColor?: Color,
     fontStyles?: FontStyle[],
 ): string {
-    const cssStyles: string[] = []
-    const textDecoration: string[] = []
-    let doubleUnderline = false
+    // 'text-decoration' properties, must all be applied together
+    let underline = false
+    let strikethrough = false
+    let doubleunderline = false
+    let overlined = false
 
-    if (textColor !== undefined) {
-        cssStyles.push(colorOption[textColor].text.css)
+    // 'color' properties, must all be applied together
+    let dim = false
+    let hidden = false
+    let inverse = false
+
+    const cssStyles = []
+
+    for (const fontStyle of fontStyles ?? []) {
+        if (fontStyle === 'bold') {
+            cssStyles.push('font-weight: bold')
+        } else if (fontStyle === 'italic') {
+            cssStyles.push('font-style: italic')
+        } else if (fontStyle === 'underline') {
+            underline = true
+        } else if (fontStyle === 'strikethrough') {
+            strikethrough = true
+        } else if (fontStyle === 'doubleunderline') {
+            doubleunderline = true
+        } else if (fontStyle === 'overlined') {
+            overlined = true
+        } else if (fontStyle === 'dim') {
+            dim = true
+            hidden = false
+        } else if (fontStyle === 'hidden') {
+            hidden = true
+        } else if (fontStyle === 'inverse') {
+            inverse = true
+            hidden = false
+        } else if (fontStyle === 'framed') {
+            cssStyles.push('padding: 1px; border: 1px solid currentColor')
+        } else if (fontStyle !== 'blink') {  // css not supported for blink
+            throw new Error(`'${fontStyle}' is not mapped to a CSS style`)
+        }
     }
+
+    // set 'color' property
+    if (hidden === true) {
+        cssStyles.push('color: rgb(from currentColor r g b / 0)')
+    }
+    const currentColor = textColor === undefined
+        ? 'currentColor'
+        : cssColorTheme[textColor]
+    if (dim === true && inverse === true) {
+        cssStyles.push(`color: ${invert(currentColor, true)}`)
+        cssStyles.push(`background: ${invert(currentColor, true)}`)
+    } else if (dim === true) {
+        cssStyles.push(`color: ${dimColor(currentColor)})`)
+    } else if (inverse === true) {
+        cssStyles.push(`color: ${invert(currentColor)}`)
+        cssStyles.push(`background: ${invert(currentColor)}`)
+    } else if (textColor !== undefined) {
+        cssStyles.push(`color: ${currentColor}`)
+    }
+
+    // set 'background' property
     if (backgroundColor !== undefined) {
-        cssStyles.push(colorOption[backgroundColor].background.css)
-    }
-    if (fontStyles !== undefined) {
-        for (const fontStyle of fontStyles) {
-            if (
-                fontStyle === 'underline' ||
-                fontStyle === 'strikethrough' ||
-                fontStyle === 'overlined'
-            ) {
-                textDecoration.push(fontStyleOption[fontStyle].css)
-            } else if (fontStyle === 'doubleunderline') {
-                doubleUnderline = true
-            } else {
-                cssStyles.push(fontStyleOption[fontStyle].css)
-            }
-        }
-    }
-    if (doubleUnderline === true) {
-        if (textDecoration.length > 0) {
-            // browsers do not support if multiple text-decoration-line sytles
-            // are used... falling back to single underline
-            if (!textDecoration.includes('underline')) {
-                textDecoration.push(fontStyleOption['underline'].css)
-            }
+        const currentBackground = cssColorTheme[backgroundColor]
+        if (dim === true) {
+            cssStyles.push(`background: ${dimColor(currentBackground)})`)
         } else {
-            textDecoration.push(fontStyleOption['doubleunderline'].css)
+            cssStyles.push(`background: ${currentBackground})`)
         }
     }
-    if ( textDecoration.length > 0 ) {
+
+    // set 'text-decoration' property
+    if (doubleunderline === true) {
+        if (strikethrough === true || overlined === true) {
+            // fall back to underline
+            underline = true
+            doubleunderline = false
+        } else {
+            underline = false
+        }
+    }
+    if (
+        underline === true ||
+        strikethrough === true ||
+        doubleunderline === true ||
+        overlined === true
+    ) {
+        const textDecoration = []
+        if (underline === true) {
+            textDecoration.push('underline')
+        }
+        if (strikethrough === true) {
+            textDecoration.push('line-through')
+        }
+        if (doubleunderline === true) {
+            textDecoration.push('underline double')
+        }
+        if (overlined === true) {
+            textDecoration.push('overline')
+        }
         cssStyles.push(`text-decoration: ${textDecoration.join(' ')}`)
     }
+
     return cssStyles.join('; ')
 }
 

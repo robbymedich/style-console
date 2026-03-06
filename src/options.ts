@@ -238,12 +238,12 @@ export const fontStyleOption = {
     underline: {
         set: '\x1b[4m',
         unset: '\x1b[24m',
-        css: 'underline',  // text-decoration: ...
+        css: 'underline', // text-decoration: ...
     },
     strikethrough: {
         set: '\x1b[9m',
         unset: '\x1b[29m',
-        css: 'line-through',  // text-decoration: ...
+        css: 'line-through', // text-decoration: ...
     },
     // below are ignored in chrome when using ANSI styling
     blink: { set: '\x1b[5m', unset: '\x1b[25m', css: '' }, // css not supported
@@ -261,7 +261,7 @@ export const fontStyleOption = {
     doubleunderline: {
         set: '\x1b[21m',
         unset: '\x1b[24m',
-        css: 'underline double',  // text-decoration: ...
+        css: 'underline double', // text-decoration: ...
     },
     framed: {
         set: '\x1b[51m',
@@ -272,7 +272,7 @@ export const fontStyleOption = {
     overlined: {
         set: '\x1b[53m',
         unset: '\x1b[55m',
-        css: 'overline',  // text-decoration: ...
+        css: 'overline', // text-decoration: ...
     },
 } as const
 
