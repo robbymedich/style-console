@@ -1,5 +1,5 @@
 import { expect, describe, test } from 'bun:test'
-import { colors, fontStyles, Color } from '../src/options'
+import { colors, fontStyles, Color, colorOption } from '../src/options'
 import {
     stripAnsi,
     renderAnsi,
@@ -13,40 +13,10 @@ import type { LazyStyledText } from '../src/style'
 const namedColors = Object.fromEntries(
     colors.map((color) => [color, color]),
 ) as Record<Color, Color>
+setCssColors(namedColors)
 
 describe('cssStyle', () => {
-    test('color text', () => {
-        for (const color of colors) {
-            expect(cssStyle(color)).toMatch(/^color: #\w{6}$/)
-        }
-    })
-
-    test('background color', () => {
-        for (const color of colors) {
-            expect(cssStyle(undefined, color)).toMatch(/^background: #\w{6}$/)
-        }
-    })
-
-    test('font styled', () => {
-        for (const fontStyle of fontStyles) {
-            if (fontStyle === 'blink') {
-                expect(cssStyle(undefined, undefined, [fontStyle])).toBe('')
-            } else {
-                expect(
-                    cssStyle(
-                        undefined, // textColor
-                        undefined, // backgroundColor
-                        [fontStyle],
-                    ),
-                ).toMatch(/^[\w-]+: [\w()./\s-;:]+$/)
-            }
-        }
-    })
-
-    test('multiple font styles', () => {
-        setCssColors(namedColors)
-
-        // push, no handling
+    test('push, no handling', () => {
         expect(
             cssStyle(undefined, undefined, [
                 'bold',
@@ -73,19 +43,96 @@ describe('cssStyle', () => {
                 'border: 1px solid currentColor; ' +
                 'font-weight: bold',
         )
-        // push, with a color
+    })
+
+    test('push, with a color', () => {
         expect(cssStyle('red', undefined, ['bold', 'italic'])).toEqual(
             'font-weight: bold; ' + 'font-style: italic; ' + 'color: red',
         )
-
-        // underline
-        // expect(cssStyle(''))
-
-        expect(cssStyle('blue', 'red')).toEqual('color: blue; background: red')
     })
 
-    test('full styled text', () => {
-        setCssColors(namedColors)
+    test('text-decoration', () => {
+        expect(cssStyle(undefined, undefined, ['underline'])).toEqual(
+            'text-decoration: underline',
+        )
+        expect(cssStyle(undefined, undefined, ['strikethrough'])).toEqual(
+            'text-decoration: line-through',
+        )
+        expect(
+            cssStyle(undefined, undefined, [
+                'underline',
+                'strikethrough',
+                'overlined',
+            ]),
+        ).toEqual('text-decoration: underline line-through overline')
+        expect(
+            cssStyle(undefined, undefined, [
+                'doubleunderline',
+                'strikethrough',
+                'overlined',
+            ]),
+        ).toEqual('text-decoration: underline line-through overline')
+        expect(
+            cssStyle(undefined, undefined, ['doubleunderline', 'italic']),
+        ).toEqual('font-style: italic; text-decoration: underline double')
+    })
+
+    test('text and background color', () => {
+        expect(cssStyle('blue', 'red')).toEqual('color: blue; background: red')
+        expect(cssStyle('red', undefined, ['dim'])).toEqual(
+            'color: rgb(from red r g b / 0.5)',
+        )
+        expect(cssStyle(undefined, 'red', ['dim'])).toEqual(
+            'color: rgb(from currentColor r g b / 0.5); ' +
+                'background: rgb(from red r g b / 0.5)',
+        )
+        expect(cssStyle('red', 'blue', ['dim'])).toEqual(
+            'color: rgb(from red r g b / 0.5); ' +
+                'background: rgb(from blue r g b / 0.5)',
+        )
+        expect(cssStyle('red', 'blue', ['inverse'])).toEqual(
+            'color: blue; background: red',
+        )
+        expect(cssStyle('red', undefined, ['inverse'])).toEqual(
+            'color: rgb(from red calc(255 - r) calc(255 - g) calc(255 - b)); ' +
+            'background: red',
+        )
+        expect(cssStyle(undefined, 'red', ['inverse'])).toEqual(
+            'color: red; ' +
+            'background: rgb(from currentColor calc(255 - r) calc(255 - g) calc(255 - b))',
+        )
+        expect(cssStyle(undefined, undefined, ['inverse'])).toEqual(
+            'color: rgb(from currentColor calc(255 - r) calc(255 - g) calc(255 - b)); ' +
+            'background: rgb(from currentColor calc(255 - r) calc(255 - g) calc(255 - b))'
+        )
+        expect(cssStyle(undefined, undefined, ['inverse', 'dim'])).toEqual(
+            'color: rgb(from currentColor calc(255 - r) calc(255 - g) calc(255 - b) / 0.5); ' +
+            'background: rgb(from currentColor calc(255 - r) calc(255 - g) calc(255 - b) / 0.5)'
+        )
+        expect(cssStyle('red', undefined, ['inverse', 'dim'])).toEqual(
+            'color: rgb(from red calc(255 - r) calc(255 - g) calc(255 - b) / 0.5); ' +
+            'background: rgb(from red r g b / 0.5)'
+        )
+        expect(cssStyle(undefined, 'red', ['inverse', 'dim'])).toEqual(
+            'color: rgb(from red r g b / 0.5); ' +
+            'background: rgb(from currentColor calc(255 - r) calc(255 - g) calc(255 - b) / 0.5)'
+        )
+        expect(cssStyle('blue', 'red', ['inverse', 'dim'])).toEqual(
+            'color: rgb(from red r g b / 0.5); ' +
+            'background: rgb(from blue r g b / 0.5)'
+        )
+        expect(cssStyle('red', undefined, ['dim', 'hidden'])).toEqual(
+            'color: rgb(from currentColor r g b / 0)',
+        )
+        expect(cssStyle('red', undefined, ['hidden', 'dim'])).toEqual(
+            'color: rgb(from red r g b / 0.5)',
+        )
+        expect(cssStyle('red', 'blue', ['inverse', 'hidden'])).toEqual(
+            'color: rgb(from currentColor r g b / 0); background: red',
+        )
+        expect(cssStyle('red', 'blue', ['hidden', 'inverse'])).toEqual(
+            'color: blue; background: red',
+        )
     })
 })
 
@@ -167,25 +214,133 @@ describe('no style', () => {
     })
 })
 
-// describe('color text', () => {
-//     test('renderAnsi', () => {
+describe('color text', () => {
+    test('renderAnsi', () => {
+        for (const color of colors) {
+            expect(
+                renderAnsiWrapped([{text: color, textColor: color}])
+            ).toEqual(
+                colorOption[color].text.set +
+                color +
+                colorOption[color].text.unset
+            )
+        }
 
-//     })
+        expect(renderAnsiWrapped([
+            { text: 'hello', textColor: 'red' },
+            { text: ' ', textColor: 'red' },
+            { text: 'world', textColor: 'red' },
+        ])).toEqual(
+            colorOption.red.text.set +
+            'hello world' +
+            colorOption.red.text.unset
+        )
 
-//     test('renderWeb', () => {
+        expect(renderAnsiWrapped([
+            { text: 'hello', textColor: 'red' },
+            { text: ' ' },
+            { text: 'world', textColor: 'red' },
+        ])).toEqual(
+            colorOption.red.text.set +
+            'hello' +
+            colorOption.red.text.unset +
+            ' ' +
+            colorOption.red.text.set +
+            'world' +
+            colorOption.red.text.unset
+        )
+    })
 
-//     })
-// })
+    test('renderWeb', () => {
+        for (const color of colors) {
+            expect(
+                renderWebWrapped([{text: color, textColor: color}])
+            ).toEqual(
+                [`%c${color}`, `color: ${color}`]
+            )
+        }
+    })
 
-// describe('background color', () => {
-//     test('renderAnsi', () => {
+    expect(renderWebWrapped([
+        { text: 'hello', textColor: 'red' },
+        { text: ' ', textColor: 'red' },
+        { text: 'world', textColor: 'red' },
+    ])).toEqual(
+        ['%chello world', 'color: red']
+    )
 
-//     })
+    expect(renderWebWrapped([
+        { text: 'hello', textColor: 'red' },
+        { text: ' ' },
+        { text: 'world', textColor: 'red' },
+    ])).toEqual(
+        ['%chello%c %cworld', 'color: red', '', 'color: red']
+    )
+})
 
-//     test('renderWeb', () => {
+describe('background color', () => {
+    test('renderAnsi', () => {
+        for (const color of colors) {
+            expect(
+                renderAnsiWrapped([{text: color, backgroundColor: color}])
+            ).toEqual(
+                colorOption[color].background.set +
+                color +
+                colorOption[color].background.unset
+            )
+        }
 
-//     })
-// })
+        expect(renderAnsiWrapped([
+            { text: 'hello', backgroundColor: 'red' },
+            { text: ' ', backgroundColor: 'red' },
+            { text: 'world', backgroundColor: 'red' },
+        ])).toEqual(
+            colorOption.red.background.set +
+            'hello world' +
+            colorOption.red.background.unset
+        )
+
+        expect(renderAnsiWrapped([
+            { text: 'hello', backgroundColor: 'red' },
+            { text: ' ' },
+            { text: 'world', backgroundColor: 'red' },
+        ])).toEqual(
+            colorOption.red.background.set +
+            'hello' +
+            colorOption.red.background.unset +
+            ' ' +
+            colorOption.red.background.set +
+            'world' +
+            colorOption.red.background.unset
+        )
+    })
+
+    test('renderWeb', () => {
+        for (const color of colors) {
+            expect(
+                renderWebWrapped([{text: color, backgroundColor: color}])
+            ).toEqual(
+                [`%c${color}`, `background: ${color}`]
+            )
+        }
+    })
+
+    expect(renderWebWrapped([
+        { text: 'hello', backgroundColor: 'red' },
+        { text: ' ', backgroundColor: 'red' },
+        { text: 'world', backgroundColor: 'red' },
+    ])).toEqual(
+        ['%chello world', 'background: red']
+    )
+
+    expect(renderWebWrapped([
+        { text: 'hello', backgroundColor: 'red' },
+        { text: ' ' },
+        { text: 'world', backgroundColor: 'red' },
+    ])).toEqual(
+        ['%chello%c %cworld', 'background: red', '', 'background: red']
+    )
+})
 
 // describe('font styled', () => {
 //     test('renderAnsi', () => {
