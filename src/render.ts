@@ -88,6 +88,7 @@ const cssColorTheme: Record<Color, string> = {
 
 export function setCssColors(options: Record<Color, string>): void {
     for (const [colorName, colorValue] of Object.entries(options)) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         cssColorTheme[colorName as Color] = colorValue
     }
 }
@@ -101,6 +102,7 @@ function dimColor(color: string): string {
     return `rgb(from ${color} r g b / 0.5)`
 }
 
+// eslint-disable-next-line complexity
 export function cssStyle(
     textColor?: Color,
     backgroundColor?: Color,
@@ -142,25 +144,24 @@ export function cssStyle(
             hidden = false
         } else if (fontStyle === 'framed') {
             cssStyles.push('padding: 1px; border: 1px solid currentColor')
-        } else if (fontStyle === 'blink') {
-            // css not supported for blink must push empty for browsers to
-            // consistently handle escape sequences
-            cssStyles.push('')
-        } else {
+        } else if (fontStyle !== 'blink') {
+            // css not supported for blink
             throw new Error(`'${fontStyle}' is not mapped to a CSS style`)
         }
     }
 
     // set 'color' property
-    const currentColor = textColor === undefined
-        ? 'currentColor'
-        : cssColorTheme[textColor]
+    const currentColor =
+        textColor === undefined ? 'currentColor' : cssColorTheme[textColor]
     if (hidden === true) {
         cssStyles.push('color: rgb(from currentColor r g b / 0)')
     } else if (inverse === true) {
-        const invertColor = backgroundColor === undefined ?
-            invert(currentColor, dim) :
-            (dim ? dimColor(cssColorTheme[backgroundColor]) : cssColorTheme[backgroundColor])
+        const invertColor =
+            backgroundColor === undefined
+                ? invert(currentColor, dim)
+                : dim === true
+                  ? dimColor(cssColorTheme[backgroundColor])
+                  : cssColorTheme[backgroundColor]
         cssStyles.push(`color: ${invertColor}`)
     } else if (dim === true) {
         cssStyles.push(`color: ${dimColor(currentColor)}`)
@@ -170,9 +171,12 @@ export function cssStyle(
 
     // set 'background' property
     if (inverse === true) {
-        const invertColor = textColor === undefined ?
-            invert(currentColor, dim) :
-            (dim ? dimColor(cssColorTheme[textColor]) : cssColorTheme[textColor])
+        const invertColor =
+            textColor === undefined
+                ? invert(currentColor, dim)
+                : dim === true
+                  ? dimColor(cssColorTheme[textColor])
+                  : cssColorTheme[textColor]
         cssStyles.push(`background: ${invertColor}`)
     } else if (backgroundColor !== undefined) {
         const currentBackground = cssColorTheme[backgroundColor]
@@ -210,7 +214,7 @@ export function cssStyle(
             textDecoration.push('overline')
         }
         if (doubleunderline === true) {
-            textDecoration.push('underline double')  // must be last to push
+            textDecoration.push('underline double') // must be last to push
         }
         cssStyles.push(`text-decoration: ${textDecoration.join(' ')}`)
     }

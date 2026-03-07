@@ -136,7 +136,7 @@ export type StylistInitializer = {
     readonly [key in FontStyle]: StylistBuilder
 } & {
     none: Stylist
-}
+} & ((style: Style) => StylistBuilder)
 /* eslint-enable @typescript-eslint/consistent-indexed-object-style */
 
 function stylistBuilder(
@@ -158,7 +158,13 @@ function stylistBuilder(
 }
 
 export const style = (function () {
-    const build = {}
+    function build(style: Style): StylistBuilder {
+        return stylistBuilder(
+            style.textColor,
+            style.backgroundColor,
+            style.fontStyles === undefined ? undefined : [...style.fontStyles],
+        )
+    }
 
     // set none option
     Object.defineProperty(build, 'none', {
@@ -197,8 +203,3 @@ export const style = (function () {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     return build as StylistInitializer
 })()
-
-export function createStylist(style: Style): Stylist {
-    const { textColor, backgroundColor, fontStyles } = style
-    return stylistBuilder(textColor, backgroundColor, fontStyles)
-}

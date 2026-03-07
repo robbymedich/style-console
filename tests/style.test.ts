@@ -63,6 +63,21 @@ describe('style no arguments', () => {
 })
 
 describe('style single argument', () => {
+    test('style from Style', () => {
+        expect(style({})()).toEqual(style.none())
+        expect(
+            style({
+                textColor: 'blue',
+                backgroundColor: 'black',
+                fontStyles: ['bold', 'italic'],
+            })(),
+        ).toEqual(style.blue.bgBlack.bold.italic())
+        const bold = style.bold
+        expect(style(bold)()).toEqual(bold())
+        expect(style(bold).underline()).toEqual(style.bold.underline())
+        expect(bold()).toEqual({ fontStyles: ['bold'] })
+    })
+
     test('red text', () => {
         expect(style.red('this text is red')).toEqual({
             text: 'this text is red',

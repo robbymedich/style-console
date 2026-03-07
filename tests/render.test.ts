@@ -1,13 +1,18 @@
 import { expect, describe, test } from 'bun:test'
-import { colors, fontStyles } from '../src/options'
+import { colors, fontStyles, Color } from '../src/options'
 import {
     stripAnsi,
     renderAnsi,
     cssStyle,
+    setCssColors,
     stripWeb,
     renderWeb,
 } from '../src/render'
 import type { LazyStyledText } from '../src/style'
+
+const namedColors = Object.fromEntries(
+    colors.map((color) => [color, color]),
+) as Record<Color, Color>
 
 describe('cssStyle', () => {
     test('color text', () => {
@@ -33,14 +38,55 @@ describe('cssStyle', () => {
                         undefined, // backgroundColor
                         [fontStyle],
                     ),
-                ).toMatch(/^[\w-]+: [\w\(\)\./\s-;:]+$/)
+                ).toMatch(/^[\w-]+: [\w()./\s-;:]+$/)
             }
         }
     })
 
-    test('multiple font styles', () => {})
+    test('multiple font styles', () => {
+        setCssColors(namedColors)
 
-    test('full styled text', () => {})
+        // push, no handling
+        expect(
+            cssStyle(undefined, undefined, [
+                'bold',
+                'italic',
+                'framed',
+                'blink',
+            ]),
+        ).toEqual(
+            'font-weight: bold; ' +
+                'font-style: italic; ' +
+                'padding: 1px; ' +
+                'border: 1px solid currentColor',
+        )
+        expect(
+            cssStyle(undefined, undefined, [
+                'blink',
+                'italic',
+                'framed',
+                'bold',
+            ]),
+        ).toEqual(
+            'font-style: italic; ' +
+                'padding: 1px; ' +
+                'border: 1px solid currentColor; ' +
+                'font-weight: bold',
+        )
+        // push, with a color
+        expect(cssStyle('red', undefined, ['bold', 'italic'])).toEqual(
+            'font-weight: bold; ' + 'font-style: italic; ' + 'color: red',
+        )
+
+        // underline
+        // expect(cssStyle(''))
+
+        expect(cssStyle('blue', 'red')).toEqual('color: blue; background: red')
+    })
+
+    test('full styled text', () => {
+        setCssColors(namedColors)
+    })
 })
 
 function renderAnsiWrapped(text: (string | LazyStyledText)[]): string {
