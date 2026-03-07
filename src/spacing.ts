@@ -1,5 +1,21 @@
+/**
+ * Global line-splitting pattern used by {@link indent} and {@link dedent}.
+ *
+ * Each match captures leading horizontal whitespace separately from the rest of
+ * the line, including an optional trailing newline.
+ */
 const SPLIT_LINE = /(?<indent>[^\S\n]*)(?<line>.*\n{0,1})/g
 
+/**
+ * Prefixes each non-empty line in a block of text.
+ *
+ * Existing indentation is preserved. Blank lines and lines that only contain a
+ * newline are left untouched.
+ *
+ * @param text - Text block to indent.
+ * @param indentWith - Prefix inserted before each non-empty line.
+ * @returns The indented text.
+ */
 export function indent(text: string, indentWith: string): string {
     if (indentWith === '') {
         return text
@@ -21,6 +37,17 @@ export function indent(text: string, indentWith: string): string {
     return cleaned.join('')
 }
 
+/**
+ * Removes a shared amount of leading indentation from each line.
+ *
+ * The amount removed is based on the smallest indentation found across
+ * non-empty lines. When `dedentPrefix` is provided, at most that many leading
+ * characters are removed even if the minimum indentation is larger.
+ *
+ * @param text - Text block to dedent.
+ * @param dedentPrefix - Maximum indentation prefix to remove from each line.
+ * @returns The dedented text.
+ */
 export function dedent(text: string, dedentPrefix?: string): string {
     SPLIT_LINE.lastIndex = 0
     const indentParts = []

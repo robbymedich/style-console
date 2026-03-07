@@ -2,11 +2,26 @@ import type { Color, FontStyle } from './options.js'
 import type { LazyStyledText } from './style.js'
 import { colorOption, fontStyleOption } from './options.js'
 
+/**
+ * Removes ANSI escape sequences from a string.
+ *
+ * @param text - Text that may contain ANSI styling sequences.
+ * @returns The plain-text version of `text`.
+ */
 export function stripAnsi(text: string): string {
     // eslint-disable-next-line no-control-regex
     return text.replaceAll(/\x1b\[\d+m/gu, '')
 }
 
+/**
+ * Renders lazy styled text into a single ANSI-styled string.
+ *
+ * The renderer only emits escape sequences when the effective style changes
+ * between adjacent parts, which keeps the output smaller and easier to read.
+ *
+ * @param text - A single part or list of parts to render.
+ * @returns A string containing ANSI escape sequences.
+ */
 // eslint-disable-next-line complexity
 export function renderAnsi(
     text: (LazyStyledText | string)[] | LazyStyledText | string,
@@ -67,6 +82,7 @@ export function renderAnsi(
     return final.join('')
 }
 
+/** Default CSS color theme used when rendering for browser consoles. */
 const cssColorTheme: Record<Color, string> = {
     black: '#000000',
     white: '#E5E5E5',
@@ -86,6 +102,11 @@ const cssColorTheme: Record<Color, string> = {
     yellowBright: '#D2C800',
 }
 
+/**
+ * Overrides one or more colors in the browser-console CSS theme.
+ *
+ * @param options - Partial or full map of color names to CSS color values.
+ */
 export function setCssColors(options: Record<Color, string>): void {
     for (const [colorName, colorValue] of Object.entries(options)) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
@@ -93,15 +114,36 @@ export function setCssColors(options: Record<Color, string>): void {
     }
 }
 
+/**
+ * Produces a CSS color expression that inverts another CSS color.
+ *
+ * @param color - Source CSS color.
+ * @param dimText - Whether to apply 50% alpha to the result.
+ * @returns A CSS `rgb(from ...)` expression.
+ */
 function invert(color: string, dimText = false): string {
     const dim = dimText ? ' / 0.5' : ''
     return `rgb(from ${color} calc(255 - r) calc(255 - g) calc(255 - b)${dim})`
 }
 
+/**
+ * Produces a 50%-opacity version of a CSS color.
+ *
+ * @param color - Source CSS color.
+ * @returns A CSS `rgb(from ...)` expression.
+ */
 function dimColor(color: string): string {
     return `rgb(from ${color} r g b / 0.5)`
 }
 
+/**
+ * Converts a style triple into a CSS declaration string suitable for `%c`.
+ *
+ * @param textColor - Foreground color name.
+ * @param backgroundColor - Background color name.
+ * @param fontStyles - Ordered list of font styles to apply.
+ * @returns A semicolon-delimited CSS declaration string.
+ */
 // eslint-disable-next-line complexity
 export function cssStyle(
     textColor?: Color,
@@ -222,6 +264,13 @@ export function cssStyle(
     return cssStyles.join('; ')
 }
 
+/**
+ * Removes browser-console `%c` styling markers while preserving escaped
+ * `%` characters.
+ *
+ * @param text - Text that may contain `%c` console styling markers.
+ * @returns The plain-text version of `text`.
+ */
 export function stripWeb(text: string): string {
     const stylePattern = /(?<p>^|[^%])((?<keep>(%%)+)(?<c>c)?)|(?<strip>%c)/g
     const parts: string[] = []
@@ -243,6 +292,16 @@ export function stripWeb(text: string): string {
     return parts.join('')
 }
 
+/**
+ * Renders lazy styled text into the argument list expected by the browser's
+ * `console.log`.
+ *
+ * The first element is the formatted string containing `%c` markers. Remaining
+ * elements are CSS declarations corresponding to each marker.
+ *
+ * @param text - A single part or list of parts to render.
+ * @returns Arguments ready to spread into `console.log(...renderWeb(text))`.
+ */
 export function renderWeb(
     text: (LazyStyledText | string)[] | LazyStyledText | string,
 ): string[] {

@@ -2,13 +2,24 @@ import type { Color, BackgroundColor, FontStyle } from './options.js'
 import { colors, fontStyles, capitalize } from './options.js'
 
 type Prettify<T> = { [key in keyof T]: T[key] } & {}
+
+/** A reusable style description without text content. */
 export type Style = {
     textColor?: Color
     backgroundColor?: Color
     fontStyles?: FontStyle[]
 }
+
+/** Payload that can be rendered as ANSI or browser-console output. */
 export type LazyStyledText = Prettify<{ text: string } & Style>
 
+/**
+ * Core callable used by the style builder.
+ *
+ * Overloads allow it to either return the current style snapshot, convert a
+ * single value into styled text, or map multiple values into a list of styled
+ * text parts.
+ */
 function stylist(): Style
 function stylist(text: string | LazyStyledText): LazyStyledText
 function stylist(
@@ -43,6 +54,12 @@ function stylist(
         }
     }
 
+    /**
+     * Applies the current builder style to a single part.
+     *
+     * Existing values on `LazyStyledText` objects are preserved and only
+     * missing style fields are filled in.
+     */
     const clean = (part: string | LazyStyledText): LazyStyledText => {
         if (typeof part === 'string') {
             return {
@@ -117,8 +134,15 @@ for (const fontStyle of fontStyles) {
     })
 }
 
+/** Callable style function type used by concrete builder instances. */
 export type Stylist = typeof stylist
 
+/**
+ * Chainable style builder instance.
+ *
+ * Each color or font-style property returns the same builder shape so calls
+ * like `style.red.bold.bgBlue('hello')` remain type-safe.
+ */
 export type StylistBuilder = Style & {
     readonly [key in Color]: StylistBuilder
 } & {
@@ -128,6 +152,12 @@ export type StylistBuilder = Style & {
 } & Stylist
 
 /* eslint-disable @typescript-eslint/consistent-indexed-object-style */
+/**
+ * Public entry point type for the exported `style` object.
+ *
+ * It can be called with an existing style object, or accessed through dynamic
+ * properties like `style.red`, `style.bgBlue`, `style.bold`, and `style.none`.
+ */
 export type StylistInitializer = {
     readonly [key in Color]: StylistBuilder
 } & {
@@ -139,6 +169,14 @@ export type StylistInitializer = {
 } & ((style: Style) => StylistBuilder)
 /* eslint-enable @typescript-eslint/consistent-indexed-object-style */
 
+/**
+ * Creates a new chainable style builder with the provided initial style state.
+ *
+ * @param textColor - Initial foreground color.
+ * @param backgroundColor - Initial background color.
+ * @param fontStyles - Initial font styles.
+ * @returns A chainable builder function.
+ */
 function stylistBuilder(
     textColor?: Color,
     backgroundColor?: Color,
@@ -157,7 +195,21 @@ function stylistBuilder(
     return build as StylistBuilder
 }
 
+/**
+ * Global style factory used to create chainable lazy style builders.
+ *
+ * Examples:
+ * - `style.red.bold('hello')`
+ * - `style.none('plain text')`
+ * - `style({ textColor: 'red' }).underline('hello')`
+ */
 export const style = (function () {
+    /**
+     * Creates a chainable builder from an existing style object.
+     *
+     * @param style - Initial style state.
+     * @returns A new style builder.
+     */
     function build(style: Style): StylistBuilder {
         return stylistBuilder(
             style.textColor,

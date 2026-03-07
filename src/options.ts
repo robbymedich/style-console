@@ -1,3 +1,10 @@
+/**
+ * ANSI escape sequences for each supported foreground and background color.
+ *
+ * Each color exposes a `text` variant for foreground styling and a
+ * `background` variant for background styling. The `set` sequence enables the
+ * color and the `unset` sequence resets only that color channel.
+ */
 export const colorOption = {
     black: {
         text: { set: '\x1b[30m', unset: '\x1b[39m' },
@@ -65,20 +72,36 @@ export const colorOption = {
     },
 } as const
 
-// used to stay in sync with BackgroundColor type with Object.defineProperty
+/**
+ * Capitalizes the first character of a string.
+ *
+ * This is used to keep runtime-generated background color names in
+ * sync with the `BackgroundColor` template-literal type.
+ *
+ * @param value - String to capitalize.
+ * @returns The same string with the first character uppercased.
+ */
 export function capitalize(value: string): string {
     return `${value.slice(0, 1).toUpperCase()}${value.slice(1)}`
 }
 
+/** Supported foreground color names. */
 export type Color = keyof typeof colorOption
+
+/** Supported background color names such as `bgRed` or `bgBlueBright`. */
 export type BackgroundColor = `bg${Capitalize<Color>}`
+
+/** List of supported foreground colors. */
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
 export const colors = Object.getOwnPropertyNames(colorOption) as Color[]
+
+/** List of supported background color builder properties. */
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
 export const backgroundColors = colors.map(
     (color) => `bg${capitalize(color)}`,
 ) as BackgroundColor[]
 
+/** ANSI escape sequences for each supported font style. */
 export const fontStyleOption = {
     bold: { set: '\x1b[1m', unset: '\x1b[22m' },
     dim: { set: '\x1b[2m', unset: '\x1b[22m' },
@@ -96,7 +119,10 @@ export const fontStyleOption = {
     overlined: { set: '\x1b[53m', unset: '\x1b[55m' },
 } as const
 
+/** Supported font style names. */
 export type FontStyle = keyof typeof fontStyleOption
+
+/** List of supported font styles. */
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
 export const fontStyles = Object.getOwnPropertyNames(
     fontStyleOption,
