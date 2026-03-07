@@ -20,6 +20,7 @@ export {
     stripAnsi,
     renderAnsi,
     cssStyle,
+    setCssColors,
     stripWeb,
     renderWeb,
 } from './render.js'

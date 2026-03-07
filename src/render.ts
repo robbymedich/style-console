@@ -67,7 +67,7 @@ export function renderAnsi(
     return final.join('')
 }
 
-const cssColorTheme = {
+const cssColorTheme: Record<Color, string> = {
     black: '#000000',
     white: '#E5E5E5',
     grey: '#777777',
@@ -84,7 +84,13 @@ const cssColorTheme = {
     redBright: '#D22319',
     yellow: '#9B9100',
     yellowBright: '#D2C800',
-} as const
+}
+
+export function setCssColors(options: Record<Color, string>): void {
+    for (const [colorName, colorValue] of Object.entries(options)) {
+        cssColorTheme[colorName as Color] = colorValue
+    }
+}
 
 function invert(color: string, dimText = false): string {
     const dim = dimText ? ' / 0.5' : ''
@@ -92,7 +98,7 @@ function invert(color: string, dimText = false): string {
 }
 
 function dimColor(color: string): string {
-    return `rgb(from ${color} r g b) / 0.5)`
+    return `rgb(from ${color} r g b / 0.5)`
 }
 
 export function cssStyle(
@@ -136,37 +142,44 @@ export function cssStyle(
             hidden = false
         } else if (fontStyle === 'framed') {
             cssStyles.push('padding: 1px; border: 1px solid currentColor')
-        } else if (fontStyle !== 'blink') {  // css not supported for blink
+        } else if (fontStyle === 'blink') {
+            // css not supported for blink must push empty for browsers to
+            // consistently handle escape sequences
+            cssStyles.push('')
+        } else {
             throw new Error(`'${fontStyle}' is not mapped to a CSS style`)
         }
     }
 
     // set 'color' property
-    if (hidden === true) {
-        cssStyles.push('color: rgb(from currentColor r g b / 0)')
-    }
     const currentColor = textColor === undefined
         ? 'currentColor'
         : cssColorTheme[textColor]
-    if (dim === true && inverse === true) {
-        cssStyles.push(`color: ${invert(currentColor, true)}`)
-        cssStyles.push(`background: ${invert(currentColor, true)}`)
-    } else if (dim === true) {
-        cssStyles.push(`color: ${dimColor(currentColor)})`)
+    if (hidden === true) {
+        cssStyles.push('color: rgb(from currentColor r g b / 0)')
     } else if (inverse === true) {
-        cssStyles.push(`color: ${invert(currentColor)}`)
-        cssStyles.push(`background: ${invert(currentColor)}`)
+        const invertColor = backgroundColor === undefined ?
+            invert(currentColor, dim) :
+            (dim ? dimColor(cssColorTheme[backgroundColor]) : cssColorTheme[backgroundColor])
+        cssStyles.push(`color: ${invertColor}`)
+    } else if (dim === true) {
+        cssStyles.push(`color: ${dimColor(currentColor)}`)
     } else if (textColor !== undefined) {
         cssStyles.push(`color: ${currentColor}`)
     }
 
     // set 'background' property
-    if (backgroundColor !== undefined) {
+    if (inverse === true) {
+        const invertColor = textColor === undefined ?
+            invert(currentColor, dim) :
+            (dim ? dimColor(cssColorTheme[textColor]) : cssColorTheme[textColor])
+        cssStyles.push(`background: ${invertColor}`)
+    } else if (backgroundColor !== undefined) {
         const currentBackground = cssColorTheme[backgroundColor]
         if (dim === true) {
-            cssStyles.push(`background: ${dimColor(currentBackground)})`)
+            cssStyles.push(`background: ${dimColor(currentBackground)}`)
         } else {
-            cssStyles.push(`background: ${currentBackground})`)
+            cssStyles.push(`background: ${currentBackground}`)
         }
     }
 
@@ -193,11 +206,11 @@ export function cssStyle(
         if (strikethrough === true) {
             textDecoration.push('line-through')
         }
-        if (doubleunderline === true) {
-            textDecoration.push('underline double')
-        }
         if (overlined === true) {
             textDecoration.push('overline')
+        }
+        if (doubleunderline === true) {
+            textDecoration.push('underline double')  // must be last to push
         }
         cssStyles.push(`text-decoration: ${textDecoration.join(' ')}`)
     }
