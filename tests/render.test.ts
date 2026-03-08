@@ -1,5 +1,5 @@
 import { expect, describe, test } from 'bun:test'
-import { colors, fontStyles, Color, colorOption } from '../src/options'
+import { colors, fontStyles, Color, colorOption, fontStyleOption } from '../src/options'
 import {
     stripAnsi,
     renderAnsi,
@@ -7,6 +7,7 @@ import {
     setCssColors,
     stripWeb,
     renderWeb,
+    equal, // internal only
 } from '../src/render'
 import type { LazyStyledText } from '../src/style'
 
@@ -14,6 +15,22 @@ const namedColors = Object.fromEntries(
     colors.map((color) => [color, color]),
 ) as Record<Color, Color>
 setCssColors(namedColors)
+
+describe('fontStyle equal', () => {
+    test('undefined or empty', () => {
+        expect(equal(undefined, ['bold'])).toBe(false)
+        expect(equal(['bold'], undefined)).toBe(false)
+        expect(equal([], [])).toBe(true)
+        expect(equal([], undefined)).toBe(false)
+    })
+
+    test('simple lists', () => {
+        expect(equal(['bold'], ['bold'])).toBe(true)
+        expect(equal(['bold'], ['bold', 'italic'])).toBe(false)
+        expect(equal(['bold', 'italic'], ['bold', 'italic'])).toBe(true)
+        expect(equal(['italic', 'bold'], ['bold', 'italic'])).toBe(false)
+    })
+})
 
 describe('cssStyle', () => {
     test('push, no handling', () => {
@@ -259,23 +276,23 @@ describe('color text', () => {
                 [`%c${color}`, `color: ${color}`]
             )
         }
+
+        expect(renderWebWrapped([
+            { text: 'hello', textColor: 'red' },
+            { text: ' ', textColor: 'red' },
+            { text: 'world', textColor: 'red' },
+        ])).toEqual(
+            ['%chello world', 'color: red']
+        )
+
+        expect(renderWebWrapped([
+            { text: 'hello', textColor: 'red' },
+            { text: ' ' },
+            { text: 'world', textColor: 'red' },
+        ])).toEqual(
+            ['%chello%c %cworld', 'color: red', '', 'color: red']
+        )
     })
-
-    expect(renderWebWrapped([
-        { text: 'hello', textColor: 'red' },
-        { text: ' ', textColor: 'red' },
-        { text: 'world', textColor: 'red' },
-    ])).toEqual(
-        ['%chello world', 'color: red']
-    )
-
-    expect(renderWebWrapped([
-        { text: 'hello', textColor: 'red' },
-        { text: ' ' },
-        { text: 'world', textColor: 'red' },
-    ])).toEqual(
-        ['%chello%c %cworld', 'color: red', '', 'color: red']
-    )
 })
 
 describe('background color', () => {
@@ -323,44 +340,123 @@ describe('background color', () => {
                 [`%c${color}`, `background: ${color}`]
             )
         }
+
+        expect(renderWebWrapped([
+            { text: 'hello', backgroundColor: 'red' },
+            { text: ' ', backgroundColor: 'red' },
+            { text: 'world', backgroundColor: 'red' },
+        ])).toEqual(
+            ['%chello world', 'background: red']
+        )
+
+        expect(renderWebWrapped([
+            { text: 'hello', backgroundColor: 'red' },
+            { text: ' ' },
+            { text: 'world', backgroundColor: 'red' },
+        ])).toEqual(
+            ['%chello%c %cworld', 'background: red', '', 'background: red']
+        )
     })
-
-    expect(renderWebWrapped([
-        { text: 'hello', backgroundColor: 'red' },
-        { text: ' ', backgroundColor: 'red' },
-        { text: 'world', backgroundColor: 'red' },
-    ])).toEqual(
-        ['%chello world', 'background: red']
-    )
-
-    expect(renderWebWrapped([
-        { text: 'hello', backgroundColor: 'red' },
-        { text: ' ' },
-        { text: 'world', backgroundColor: 'red' },
-    ])).toEqual(
-        ['%chello%c %cworld', 'background: red', '', 'background: red']
-    )
 })
 
-// describe('font styled', () => {
-//     test('renderAnsi', () => {
+describe('font styled', () => {
+    test('renderAnsi', () => {
+        for (const fontStyle of fontStyles) {
+            expect(
+                renderAnsiWrapped([{text: fontStyle, fontStyles: [fontStyle]}])
+            ).toEqual(
+                fontStyleOption[fontStyle].set +
+                fontStyle +
+                fontStyleOption[fontStyle].unset
+            )
+        }
 
-//     })
+        expect(renderAnsiWrapped([
+            { text: 'hello', fontStyles: ['bold'] },
+            { text: ' ', fontStyles: ['bold'] },
+            { text: 'world', fontStyles: ['bold'] },
+        ])).toEqual(
+            fontStyleOption.bold.set +
+            'hello world' +
+            fontStyleOption.bold.unset
+        )
 
-//     test('renderWeb', () => {
+        expect(renderAnsiWrapped([
+            { text: 'hello', fontStyles: ['bold'] },
+            { text: ' ' },
+            { text: 'world', fontStyles: ['bold'] },
+        ])).toEqual(
+            fontStyleOption.bold.set +
+            'hello' +
+            fontStyleOption.bold.unset +
+            ' ' +
+            fontStyleOption.bold.set +
+            'world' +
+            fontStyleOption.bold.unset
+        )
+    })
 
-//     })
-// })
+    test('renderWeb', () => {
+        for (const fontStyle of fontStyles) {
+            const args = renderWebWrapped([
+                {text: fontStyle, fontStyles: [fontStyle]}
+            ])
+            expect(args[0]).toEqual(`%c${fontStyle}`)
+            if (fontStyle === 'blink') {
+                expect(args[1]).toBe("")
+            } else {
+                expect(args[1]).toMatch(/^[\w-]+: [\w()./\s-;:]+$/)
+            }
+        }
 
-// describe('multiple font styles', () => {
-//     test('renderAnsi', () => {
+        expect(renderWebWrapped([
+            { text: 'hello', fontStyles: ['bold'] },
+            { text: ' ', fontStyles: ['bold'] },
+            { text: 'world', fontStyles: ['bold'] },
+        ])).toEqual(
+            ['%chello world', 'font-weight: bold']
+        )
 
-//     })
+        expect(renderWebWrapped([
+            { text: 'hello', fontStyles: ['bold'] },
+            { text: ' ' },
+            { text: 'world', fontStyles: ['bold'] },
+        ])).toEqual(
+            ['%chello%c %cworld', 'font-weight: bold', '', 'font-weight: bold']
+        )
+    })
+})
 
-//     test('renderWeb', () => {
+describe('multiple font styles', () => {
+    test('renderAnsi', () => {
+        expect(renderAnsiWrapped([
+            { text: 'hello', fontStyles: ['bold'] },
+            { text: ' ', fontStyles: ['bold', 'strikethrough'] },
+            { text: 'world', fontStyles: ['bold', 'italic'] },
+        ])).toEqual(
+            `${fontStyleOption.bold.set}hello${fontStyleOption.bold.unset}` +
+            fontStyleOption.bold.set + fontStyleOption.strikethrough.set +
+            ' ' +
+            fontStyleOption.bold.unset + fontStyleOption.strikethrough.unset +
+            fontStyleOption.bold.set + fontStyleOption.italic.set +
+            'world' +
+            fontStyleOption.bold.unset + fontStyleOption.italic.unset
+        )
+    })
 
-//     })
-// })
+    test('renderWeb', () => {
+        expect(renderWebWrapped([
+            { text: 'hello', fontStyles: ['bold'] },
+            { text: ' ', fontStyles: ['bold', 'strikethrough'] },
+            { text: 'world', fontStyles: ['bold', 'italic'] },
+        ])).toEqual([
+            '%chello%c %cworld',
+            'font-weight: bold',
+            'font-weight: bold; text-decoration: line-through',
+            'font-weight: bold; font-style: italic'
+        ])
+    })
+})
 
 // describe('full styled text', () => {
 //     test('renderAnsi', () => {

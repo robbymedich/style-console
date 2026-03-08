@@ -14,6 +14,30 @@ export function stripAnsi(text: string): string {
 }
 
 /**
+ * Checks if two font style lists are equal to one another,
+ * `lhs === rhs` by value.
+ *
+ * @param lhs - left hand side
+ * @param rhs - right hand side
+ */
+export function equal(lhs?: FontStyle[], rhs?: FontStyle[]): boolean {
+    if (lhs === rhs) {
+        return true
+    }
+    if (
+        lhs === undefined || rhs === undefined || lhs.length !== rhs.length
+    ) {
+        return false
+    }
+    for (let ix = 0; ix < lhs.length; ix++) {
+        if (lhs[ix] !== rhs[ix]) {
+            return false
+        }
+    }
+    return true
+}
+
+/**
  * Renders lazy styled text into a single ANSI-styled string.
  *
  * The renderer only emits escape sequences when the effective style changes
@@ -52,7 +76,7 @@ export function renderAnsi(
                 final.push(colorOption[backgroundColor].background.set)
             }
         }
-        if (part.fontStyles !== fontStyles) {
+        if (!equal(part.fontStyles, fontStyles)) {
             if (fontStyles !== undefined) {
                 for (const fontStyle of fontStyles) {
                     final.push(fontStyleOption[fontStyle].unset)
@@ -76,7 +100,7 @@ export function renderAnsi(
     }
     if (fontStyles !== undefined) {
         for (const fontStyle of fontStyles) {
-            final.push(fontStyleOption[fontStyle].set)
+            final.push(fontStyleOption[fontStyle].unset)
         }
     }
     return final.join('')
@@ -317,7 +341,7 @@ export function renderWeb(
         if (
             part.textColor !== textColor ||
             part.backgroundColor !== backgroundColor ||
-            part.fontStyles !== fontStyles
+            !equal(part.fontStyles, fontStyles)
         ) {
             textColor = part.textColor
             backgroundColor = part.backgroundColor
