@@ -103,7 +103,7 @@ export const backgroundColors = colors.map(
 
 /** ANSI escape sequences for each supported font style. */
 export const fontStyleOption = {
-    bold: { set: '\x1b[1m', unset: '\x1b[22m' }, // TODO: test for bug on dim/bold reset
+    bold: { set: '\x1b[1m', unset: '\x1b[22m' },
     dim: { set: '\x1b[2m', unset: '\x1b[22m' },
     italic: { set: '\x1b[3m', unset: '\x1b[23m' },
     underline: { set: '\x1b[4m', unset: '\x1b[24m' },
@@ -113,7 +113,7 @@ export const fontStyleOption = {
     hidden: { set: '\x1b[8m', unset: '\x1b[28m' },
     inverse: { set: '\x1b[7m', unset: '\x1b[27m' },
     // rare terminal support
-    doubleunderline: { set: '\x1b[21m', unset: '\x1b[24m' }, // TODO: test for bug on single/double reset
+    doubleunderline: { set: '\x1b[21m', unset: '\x1b[24m' },
     framed: { set: '\x1b[51m', unset: '\x1b[54m' },
     overlined: { set: '\x1b[53m', unset: '\x1b[55m' },
 } as const

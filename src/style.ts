@@ -14,15 +14,34 @@ export type Style = {
 export type LazyStyledText = Prettify<{ text: string } & Style>
 
 /**
- * Core callable used by the style builder.
+ * Callable used to build `LazyStyledText` from `string` or other
+ * `LazyStyledText` objects. If a `LazyStyledText` argument is used the current
+ * linked style will fill in gaps in the already styled text, but it will not
+ * override the existing styles.
  *
- * Overloads allow it to either return the current style snapshot, convert a
- * single value into styled text, or map multiple values into a list of styled
- * text parts.
+ * Calling without any arguments returns the linked `Style` object used to
+ * lazily style text.
+ *
+ * Calling with a list or multiple arguments returns `LazyStyledText`[].
  */
-// TODO: improve this doc string
 function stylist(): Style
+/**
+ * Create a `LazyStyledText` object from a string or another `LazyStyledText`
+ * object. Current styles are preserved, but any missing styles are added if
+ * called with a `LazyStyledText` object
+ *
+ * @param text - input `string` or `LazyStyledText` to style.
+ * @returns `LazyStyledText` object with the applied styles
+ */
 function stylist(text: string | LazyStyledText): LazyStyledText
+/**
+ * Create a list of `LazyStyledText` objects from `string`(s) or other
+ * `LazyStyledText` objects. Current styles are preserved, but any missing
+ * styles are added if `LazyStyledText` objects are provided as arguments.
+ *
+ * @param text - list of `string` or `LazyStyledText` arguments to style.
+ * @returns `LazyStyledText[]` with applied styles to all input arguments
+ */
 function stylist(
     ...text: (string | LazyStyledText | LazyStyledText[])[]
 ): LazyStyledText[]

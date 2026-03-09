@@ -6,6 +6,7 @@ import {
     colorOption,
     fontStyleOption,
 } from '../src/options'
+import { style } from '../src/style'
 import {
     stripAnsi,
     renderAnsi,
@@ -546,6 +547,60 @@ describe('full styled text', () => {
             'font-weight: bold; color: blue',
             'font-weight: bold; color: blue; background: red; text-decoration: line-through',
             'font-weight: bold; font-style: italic; background: red',
+        ])
+    })
+})
+
+describe.only('nested style(s)', () => {
+    test('bold + dim', () => {
+        const text = style.bold(
+            'this is bold, ',
+            style.dim('this is dimmed, '),
+            'and this is bold again.'
+        )
+        // bold and dim text share the same ANSI reset code
+        expect(renderAnsi(text)).toEqual(
+            fontStyleOption.bold.set +
+            'this is bold, ' +
+            fontStyleOption.bold.unset +
+            fontStyleOption.dim.set +
+            'this is dimmed, ' +
+            fontStyleOption.dim.unset +
+            fontStyleOption.bold.set +
+            'and this is bold again.' +
+            fontStyleOption.bold.unset
+        )
+        expect(renderWeb(text)).toEqual([
+            '%cthis is bold, %cthis is dimmed, %cand this is bold again.',
+            'font-weight: bold',
+            'color: rgb(from currentColor r g b / 0.5)',
+            'font-weight: bold',
+        ])
+    })
+
+    test('underline + doubleunderline', () => {
+        const text = style.underline(
+            'single',
+            style.doubleunderline(' double '),
+            'single'
+        )
+        // underline and doubleunderline text share the same ANSI reset code
+        expect(renderAnsi(text)).toEqual(
+            fontStyleOption.underline.set +
+            'single' +
+            fontStyleOption.underline.unset +
+            fontStyleOption.doubleunderline.set +
+            ' double ' +
+            fontStyleOption.doubleunderline.unset +
+            fontStyleOption.underline.set +
+            'single' +
+            fontStyleOption.underline.unset
+        )
+        expect(renderWeb(text)).toEqual([
+            '%csingle%c double %csingle',
+            'text-decoration: underline',
+            'text-decoration: underline double',
+            'text-decoration: underline',
         ])
     })
 })
