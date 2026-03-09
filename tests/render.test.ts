@@ -551,7 +551,7 @@ describe('full styled text', () => {
     })
 })
 
-describe.only('nested style(s)', () => {
+describe('nested style(s)', () => {
     test('bold + dim', () => {
         const text = style.bold(
             'this is bold, ',

@@ -1,6 +1,6 @@
 import type { Color, FontStyle } from './options.js'
 import type { LazyStyledText } from './style.js'
-import { colorOption, fontStyleOption } from './options.js'
+import { colorOption, fontStyleOption, colors } from './options.js'
 
 /**
  * Removes ANSI escape sequences from a string.
@@ -148,6 +148,10 @@ const cssColorTheme: Record<Color, string> = {
  */
 export function setCssColors(options: Record<Color, string>): void {
     for (const [colorName, colorValue] of Object.entries(options)) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        if (!colors.includes(colorName as Color)) {
+            throw new Error(`invalid color '${colorName}'`)
+        }
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         cssColorTheme[colorName as Color] = colorValue
     }
