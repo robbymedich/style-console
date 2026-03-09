@@ -103,19 +103,18 @@ export const backgroundColors = colors.map(
 
 /** ANSI escape sequences for each supported font style. */
 export const fontStyleOption = {
-    bold: { set: '\x1b[1m', unset: '\x1b[22m' },
+    bold: { set: '\x1b[1m', unset: '\x1b[22m' }, // TODO: test for bug on dim/bold reset
     dim: { set: '\x1b[2m', unset: '\x1b[22m' },
     italic: { set: '\x1b[3m', unset: '\x1b[23m' },
     underline: { set: '\x1b[4m', unset: '\x1b[24m' },
     strikethrough: { set: '\x1b[9m', unset: '\x1b[29m' },
-    // below are ignored in chrome when using ANSI styling
-    blink: { set: '\x1b[5m', unset: '\x1b[25m' }, // css not supported
+    // below have limited terminal support
+    blink: { set: '\x1b[5m', unset: '\x1b[25m' },
     hidden: { set: '\x1b[8m', unset: '\x1b[28m' },
     inverse: { set: '\x1b[7m', unset: '\x1b[27m' },
-    // below are ignored in mac terminal and chrome when using ANSI styling
-    doubleunderline: { set: '\x1b[21m', unset: '\x1b[24m' },
+    // rare terminal support
+    doubleunderline: { set: '\x1b[21m', unset: '\x1b[24m' }, // TODO: test for bug on single/double reset
     framed: { set: '\x1b[51m', unset: '\x1b[54m' },
-    // below is supposed to work with ANSI styling but doesn't
     overlined: { set: '\x1b[53m', unset: '\x1b[55m' },
 } as const
 

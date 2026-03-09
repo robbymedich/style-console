@@ -24,9 +24,7 @@ export function equal(lhs?: FontStyle[], rhs?: FontStyle[]): boolean {
     if (lhs === rhs) {
         return true
     }
-    if (
-        lhs === undefined || rhs === undefined || lhs.length !== rhs.length
-    ) {
+    if (lhs === undefined || rhs === undefined || lhs.length !== rhs.length) {
         return false
     }
     for (let ix = 0; ix < lhs.length; ix++) {
@@ -58,6 +56,7 @@ export function renderAnsi(
 
     for (const rawPart of allParts) {
         const part = typeof rawPart === 'string' ? { text: rawPart } : rawPart
+
         if (part.textColor !== textColor) {
             if (textColor !== undefined) {
                 final.push(colorOption[textColor].text.unset)
@@ -77,15 +76,31 @@ export function renderAnsi(
             }
         }
         if (!equal(part.fontStyles, fontStyles)) {
+            const oldStyles = fontStyles
+            fontStyles = part.fontStyles
+
+            const fontStyleFlags: Partial<Record<FontStyle, boolean>> = {}
             if (fontStyles !== undefined) {
                 for (const fontStyle of fontStyles) {
-                    final.push(fontStyleOption[fontStyle].unset)
+                    fontStyleFlags[fontStyle] = true
                 }
             }
-            fontStyles = part.fontStyles
+            if (oldStyles !== undefined) {
+                for (const fontStyle of oldStyles) {
+                    // eslint-disable-next-line max-depth
+                    if (fontStyleFlags[fontStyle] === true) {
+                        fontStyleFlags[fontStyle] = false
+                    } else {
+                        final.push(fontStyleOption[fontStyle].unset)
+                    }
+                }
+            }
             if (fontStyles !== undefined) {
                 for (const fontStyle of fontStyles) {
-                    final.push(fontStyleOption[fontStyle].set)
+                    // eslint-disable-next-line max-depth
+                    if (fontStyleFlags[fontStyle] === true) {
+                        final.push(fontStyleOption[fontStyle as FontStyle].set)
+                    }
                 }
             }
         }
@@ -219,34 +234,36 @@ export function cssStyle(
     // set 'color' property
     const currentColor =
         textColor === undefined ? 'currentColor' : cssColorTheme[textColor]
-    if (hidden === true) {
+    if (hidden) {
         cssStyles.push('color: rgb(from currentColor r g b / 0)')
-    } else if (inverse === true) {
+    } else if (inverse) {
         const invertColor =
+            // eslint-disable-next-line no-nested-ternary
             backgroundColor === undefined
                 ? invert(currentColor, dim)
-                : dim === true
+                : dim
                   ? dimColor(cssColorTheme[backgroundColor])
                   : cssColorTheme[backgroundColor]
         cssStyles.push(`color: ${invertColor}`)
-    } else if (dim === true) {
+    } else if (dim) {
         cssStyles.push(`color: ${dimColor(currentColor)}`)
     } else if (textColor !== undefined) {
         cssStyles.push(`color: ${currentColor}`)
     }
 
     // set 'background' property
-    if (inverse === true) {
+    if (inverse) {
         const invertColor =
+            // eslint-disable-next-line no-nested-ternary
             textColor === undefined
                 ? invert(currentColor, dim)
-                : dim === true
+                : dim
                   ? dimColor(cssColorTheme[textColor])
                   : cssColorTheme[textColor]
         cssStyles.push(`background: ${invertColor}`)
     } else if (backgroundColor !== undefined) {
         const currentBackground = cssColorTheme[backgroundColor]
-        if (dim === true) {
+        if (dim) {
             cssStyles.push(`background: ${dimColor(currentBackground)}`)
         } else {
             cssStyles.push(`background: ${currentBackground}`)
@@ -254,8 +271,8 @@ export function cssStyle(
     }
 
     // set 'text-decoration' property
-    if (doubleunderline === true) {
-        if (strikethrough === true || overlined === true) {
+    if (doubleunderline) {
+        if (strikethrough || overlined) {
             // fall back to underline
             underline = true
             doubleunderline = false
@@ -263,23 +280,18 @@ export function cssStyle(
             underline = false
         }
     }
-    if (
-        underline === true ||
-        strikethrough === true ||
-        doubleunderline === true ||
-        overlined === true
-    ) {
+    if (underline || strikethrough || doubleunderline || overlined) {
         const textDecoration = []
-        if (underline === true) {
+        if (underline) {
             textDecoration.push('underline')
         }
-        if (strikethrough === true) {
+        if (strikethrough) {
             textDecoration.push('line-through')
         }
-        if (overlined === true) {
+        if (overlined) {
             textDecoration.push('overline')
         }
-        if (doubleunderline === true) {
+        if (doubleunderline) {
             textDecoration.push('underline double') // must be last to push
         }
         cssStyles.push(`text-decoration: ${textDecoration.join(' ')}`)

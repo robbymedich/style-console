@@ -20,7 +20,7 @@ export type LazyStyledText = Prettify<{ text: string } & Style>
  * single value into styled text, or map multiple values into a list of styled
  * text parts.
  */
- // TODO: improve this doc string
+// TODO: improve this doc string
 function stylist(): Style
 function stylist(text: string | LazyStyledText): LazyStyledText
 function stylist(
