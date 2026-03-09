@@ -186,6 +186,8 @@ export type StylistInitializer = {
     readonly [key in FontStyle]: StylistBuilder
 } & {
     none: Stylist
+} & {
+    concat: typeof concat
 } & ((style: Style) => StylistBuilder)
 /* eslint-enable @typescript-eslint/consistent-indexed-object-style */
 
@@ -215,13 +217,41 @@ function stylistBuilder(
     return build as StylistBuilder
 }
 
+// TODO: is this what I want?
+function concat(...text: (LazyStyledText | LazyStyledText[])[]): LazyStyledText[] {
+    const trailingSpace = /\s$/
+    const combined = []
+    let hasSeparator = true
+
+    for (const part of text) {
+        if (Array.isArray(part)) {
+            for (const subPart of part) {
+                if (!hasSeparator) {
+                    combined.push({ text: ' ' })
+                }
+                combined.push(subPart)
+                hasSeparator = trailingSpace.test(subPart.text)
+            }
+        } else {
+            if (!hasSeparator) {
+                combined.push({ text: ' ' })
+            }
+            combined.push(part)
+            hasSeparator = trailingSpace.test(part.text)
+        }
+    }
+    return combined
+}
+
 /**
- * Global style factory used to create chainable lazy style builders.
+ * Global style factory used to create chainable lazy style builders
  *
  * Examples:
  * - `style.red.bold('hello')`
  * - `style.none('plain text')`
  * - `style({ textColor: 'red' }).underline('hello')`
+ * - `const savedStyle = style.bgRed.bold`
+ * - `style(savedStyle).white('bold with a red background and white text')`
  */
 export const style = (function () {
     /**
@@ -242,6 +272,14 @@ export const style = (function () {
     Object.defineProperty(build, 'none', {
         get() {
             return stylistBuilder()
+        },
+        enumerable: true,
+    })
+
+    // set concat option
+    Object.defineProperty(build, 'concat', {
+        get() {
+            return concat
         },
         enumerable: true,
     })

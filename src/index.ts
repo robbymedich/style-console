@@ -17,9 +17,7 @@ export { indent, dedent } from './spacing.js'
 export {
     colors,
     backgroundColors,
-    colorOption,
     fontStyles,
-    fontStyleOption,
 } from './options.js'
 export { style } from './style.js'
 export {
