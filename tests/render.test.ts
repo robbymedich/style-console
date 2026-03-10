@@ -17,7 +17,7 @@ import {
     equal, // internal only
 } from '../src/render'
 import type { Color } from '../src/options'
-import type { LazyStyledText } from '../src/style'
+import type { StyledText } from '../src/style'
 
 const namedColors = Object.fromEntries(
     colors.map((color) => [color, color]),
@@ -161,7 +161,7 @@ describe('cssStyle', () => {
     })
 })
 
-function renderAnsiWrapped(text: (string | LazyStyledText)[]): string {
+function renderAnsiWrapped(text: (string | StyledText)[]): string {
     const styledText = renderAnsi(text)
     const plainText = text
         .map((part) => {
@@ -177,7 +177,7 @@ function renderAnsiWrapped(text: (string | LazyStyledText)[]): string {
     return styledText
 }
 
-function renderWebWrapped(text: (string | LazyStyledText)[]): string[] {
+function renderWebWrapped(text: (string | StyledText)[]): string[] {
     const styledText = renderWeb(text)
     const plainText = text
         .map((part) => {

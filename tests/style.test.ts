@@ -1,7 +1,7 @@
 import { expect, test, describe } from 'bun:test'
 import { colors, fontStyles } from '../src/options.ts'
 import { style } from '../src/style'
-import type { LazyStyledText } from '../src/style.ts'
+import type { StyledText } from '../src/style.ts'
 
 // perform unsafe casting to test edge cases people will do even though it
 // doesn't align to the proper types
@@ -114,7 +114,7 @@ describe('style single argument', () => {
 
     test('lazy input argument', () => {
         const greenText = style.green('this text is green and bold')
-        const expected: LazyStyledText = {
+        const expected: StyledText = {
             text: 'this text is green and bold',
             textColor: 'green',
             fontStyles: ['bold'],

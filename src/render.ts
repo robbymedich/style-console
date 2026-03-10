@@ -1,5 +1,5 @@
 import type { Color, FontStyle } from './options.js'
-import type { LazyStyledText } from './style.js'
+import type { StyledText } from './style.js'
 import { colorOption, fontStyleOption, colors } from './options.js'
 
 /**
@@ -46,7 +46,7 @@ export function equal(lhs?: FontStyle[], rhs?: FontStyle[]): boolean {
  */
 // eslint-disable-next-line complexity
 export function renderAnsi(
-    text: (LazyStyledText | string)[] | LazyStyledText | string,
+    text: (StyledText | string)[] | StyledText | string,
 ): string {
     const allParts = Array.isArray(text) ? text : [text]
     let textColor: Color | undefined
@@ -343,7 +343,7 @@ export function stripWeb(text: string): string {
  * @returns Arguments ready to spread into `console.log(...renderWeb(text))`.
  */
 export function renderWeb(
-    text: (LazyStyledText | string)[] | LazyStyledText | string,
+    text: (StyledText | string)[] | StyledText | string,
 ): string[] {
     const allParts = Array.isArray(text) ? text : [text]
     let textColor: Color | undefined

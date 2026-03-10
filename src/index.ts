@@ -8,7 +8,7 @@
 export type { Color, BackgroundColor, FontStyle } from './options.js'
 export type {
     Style,
-    LazyStyledText,
+    StyledText,
     Stylist,
     StylistBuilder,
     StylistInitializer,

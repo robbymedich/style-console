@@ -11,44 +11,47 @@ export type Style = {
 }
 
 /** Payload that can be rendered as ANSI or browser-console output. */
-export type LazyStyledText = Prettify<{ text: string } & Style>
+export type StyledText = Prettify<{ text: string } & Style>
+
+/** Helper to make iterable shorter */
+type Iter<T> = Iterable<T, void, undefined>
 
 /**
- * Callable used to build `LazyStyledText` from `string` or other
- * `LazyStyledText` objects. If a `LazyStyledText` argument is used the current
+ * Callable used to build `StyledText` from `string` or other
+ * `StyledText` objects. If a `StyledText` argument is used the current
  * linked style will fill in gaps in the already styled text, but it will not
  * override the existing styles.
  *
  * Calling without any arguments returns the linked `Style` object used to
  * lazily style text.
  *
- * Calling with a list or multiple arguments returns `LazyStyledText`[].
+ * Calling with a list or multiple arguments returns `StyledText`[].
  */
 function stylist(): Style
 /**
- * Create a `LazyStyledText` object from a string or another `LazyStyledText`
+ * Create a `StyledText` object from a string or another `StyledText`
  * object. Current styles are preserved, but any missing styles are added if
- * called with a `LazyStyledText` object
+ * called with a `StyledText` object
  *
- * @param text - input `string` or `LazyStyledText` to style.
- * @returns `LazyStyledText` object with the applied styles
+ * @param text - input `string` or `StyledText` to style.
+ * @returns `StyledText` object with the applied styles
  */
-function stylist(text: string | LazyStyledText): LazyStyledText
+function stylist(text: string | StyledText): StyledText
 /**
- * Create a list of `LazyStyledText` objects from `string`(s) or other
- * `LazyStyledText` objects. Current styles are preserved, but any missing
- * styles are added if `LazyStyledText` objects are provided as arguments.
+ * Create a list of `StyledText` objects from `string`(s) or other
+ * `StyledText` objects. Current styles are preserved, but any missing
+ * styles are added if `StyledText` objects are provided as arguments.
  *
- * @param text - list of `string` or `LazyStyledText` arguments to style.
- * @returns `LazyStyledText[]` with applied styles to all input arguments
+ * @param text - list of `string` or `StyledText` arguments to style.
+ * @returns `StyledText[]` with applied styles to all input arguments
  */
 function stylist(
-    ...text: (string | LazyStyledText | LazyStyledText[])[]
-): LazyStyledText[]
+    ...text: (string | StyledText | StyledText[])[]
+): StyledText[]
 function stylist(
     this: Style,
-    ...text: (string | LazyStyledText | LazyStyledText[])[]
-): Style | LazyStyledText | LazyStyledText[] {
+    ...text: (string | StyledText | StyledText[])[]
+): Style | StyledText | StyledText[] {
     if (this === undefined) {
         throw new Error("style context not found, 'this' binding incorrect")
     }
@@ -77,10 +80,10 @@ function stylist(
     /**
      * Applies the current builder style to a single part.
      *
-     * Existing values on `LazyStyledText` objects are preserved and only
+     * Existing values on `StyledText` objects are preserved and only
      * missing style fields are filled in.
      */
-    const clean = (part: string | LazyStyledText): LazyStyledText => {
+    const clean = (part: string | StyledText): StyledText => {
         if (typeof part === 'string') {
             return {
                 text: part,
@@ -106,7 +109,7 @@ function stylist(
     if (text.length === 1 && !Array.isArray(firstArg)) {
         return clean(firstArg)
     }
-    const results: LazyStyledText[] = []
+    const results: StyledText[] = []
 
     for (const part of text) {
         if (Array.isArray(part)) {
@@ -218,7 +221,7 @@ function stylistBuilder(
 }
 
 // TODO: is this what I want?
-function concat(...text: (LazyStyledText | LazyStyledText[])[]): LazyStyledText[] {
+function concat(...text: (StyledText | StyledText[])[]): StyledText[] {
     const trailingSpace = /\s$/
     const combined = []
     let hasSeparator = true
