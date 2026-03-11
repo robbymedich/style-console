@@ -556,19 +556,19 @@ describe('nested style(s)', () => {
         const text = style.bold(
             'this is bold, ',
             style.dim('this is dimmed, '),
-            'and this is bold again.'
+            'and this is bold again.',
         )
         // bold and dim text share the same ANSI reset code
         expect(renderAnsi(text)).toEqual(
             fontStyleOption.bold.set +
-            'this is bold, ' +
-            fontStyleOption.bold.unset +
-            fontStyleOption.dim.set +
-            'this is dimmed, ' +
-            fontStyleOption.dim.unset +
-            fontStyleOption.bold.set +
-            'and this is bold again.' +
-            fontStyleOption.bold.unset
+                'this is bold, ' +
+                fontStyleOption.bold.unset +
+                fontStyleOption.dim.set +
+                'this is dimmed, ' +
+                fontStyleOption.dim.unset +
+                fontStyleOption.bold.set +
+                'and this is bold again.' +
+                fontStyleOption.bold.unset,
         )
         expect(renderWeb(text)).toEqual([
             '%cthis is bold, %cthis is dimmed, %cand this is bold again.',
@@ -582,19 +582,19 @@ describe('nested style(s)', () => {
         const text = style.underline(
             'single',
             style.doubleunderline(' double '),
-            'single'
+            'single',
         )
         // underline and doubleunderline text share the same ANSI reset code
         expect(renderAnsi(text)).toEqual(
             fontStyleOption.underline.set +
-            'single' +
-            fontStyleOption.underline.unset +
-            fontStyleOption.doubleunderline.set +
-            ' double ' +
-            fontStyleOption.doubleunderline.unset +
-            fontStyleOption.underline.set +
-            'single' +
-            fontStyleOption.underline.unset
+                'single' +
+                fontStyleOption.underline.unset +
+                fontStyleOption.doubleunderline.set +
+                ' double ' +
+                fontStyleOption.doubleunderline.unset +
+                fontStyleOption.underline.set +
+                'single' +
+                fontStyleOption.underline.unset,
         )
         expect(renderWeb(text)).toEqual([
             '%csingle%c double %csingle',

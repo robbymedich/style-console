@@ -43,9 +43,49 @@ function clean(this: Style, part: string | StyledText): StyledText {
     return part
 }
 
-// class IterStyledText implements IterableIterator<StyledText, void, undefined> {
+export class IterStyledText implements IterableIterator<
+    StyledText,
+    void,
+    undefined
+> {
+    private ix = 0
+    private currentSegmentIterator?: Iterator<StyledText, void, undefined>
 
-// }
+    constructor(
+        public style: Style,
+        private segements: (
+            | string
+            | StyledText
+            | Iterable<StyledText, void, undefined>
+        )[],
+    ) {}
+
+    next(): IteratorResult<StyledText, void> {
+        const currentSegment = this.segements[this.ix]
+        if (currentSegment === undefined) {
+            return { value: undefined, done: true }
+        }
+        if (typeof currentSegment === 'string' || 'text' in currentSegment) {
+            this.ix += 1
+            return { value: clean.call(this.style, currentSegment) }
+        } else {
+            if (this.currentSegmentIterator === undefined) {
+                this.currentSegmentIterator = currentSegment[Symbol.iterator]()
+            }
+            const { value, done } = this.currentSegmentIterator.next()
+            if (value === undefined || done === true) {
+                this.ix += 1
+                this.currentSegmentIterator = undefined
+                return this.next()
+            }
+            return { value: clean.call(this.style, value) }
+        }
+    }
+
+    [Symbol.iterator](): IterStyledText {
+        return new IterStyledText(this.style, this.segements)
+    }
+}
 
 /**
  * Callable used to build `StyledText` from `string` or other
@@ -76,9 +116,7 @@ function stylist(text: string | StyledText): StyledText
  * @param text - list of `string` or `StyledText` arguments to style.
  * @returns `StyledText[]` with applied styles to all input arguments
  */
-function stylist(
-    ...text: (string | StyledText | StyledText[])[]
-): StyledText[]
+function stylist(...text: (string | StyledText | StyledText[])[]): StyledText[]
 function stylist(
     this: Style,
     ...text: (string | StyledText | StyledText[])[]

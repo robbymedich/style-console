@@ -14,12 +14,8 @@ export type {
     StylistInitializer,
 } from './style.js'
 export { indent, dedent } from './spacing.js'
-export {
-    colors,
-    backgroundColors,
-    fontStyles,
-} from './options.js'
-export { style } from './style.js'
+export { colors, backgroundColors, fontStyles } from './options.js'
+export { style, IterStyledText } from './style.js'
 export {
     stripAnsi,
     renderAnsi,
