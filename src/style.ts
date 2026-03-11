@@ -13,8 +13,39 @@ export type Style = {
 /** Payload that can be rendered as ANSI or browser-console output. */
 export type StyledText = Prettify<{ text: string } & Style>
 
-/** Helper to make iterable shorter */
-type Iter<T> = Iterable<T, void, undefined>
+/**
+ * Applies the current builder style to a single part.
+ *
+ * Existing values on `StyledText` objects are preserved and only
+ * missing style fields are filled in.
+ */
+function clean(this: Style, part: string | StyledText): StyledText {
+    if (typeof part === 'string') {
+        return {
+            text: part,
+            textColor: this.textColor,
+            backgroundColor: this.backgroundColor,
+            fontStyles: this.fontStyles,
+        }
+    }
+    if (this.textColor !== undefined && part.textColor === undefined) {
+        part.textColor = this.textColor
+    }
+    if (
+        this.backgroundColor !== undefined &&
+        part.backgroundColor === undefined
+    ) {
+        part.backgroundColor = this.backgroundColor
+    }
+    if (this.fontStyles !== undefined && part.fontStyles === undefined) {
+        part.fontStyles = this.fontStyles
+    }
+    return part
+}
+
+// class IterStyledText implements IterableIterator<StyledText, void, undefined> {
+
+// }
 
 /**
  * Callable used to build `StyledText` from `string` or other
@@ -55,71 +86,30 @@ function stylist(
     if (this === undefined) {
         throw new Error("style context not found, 'this' binding incorrect")
     }
-    const finalStyles =
-        this.fontStyles === undefined || this.fontStyles.length === 0
-            ? undefined
-            : this.fontStyles
     const firstArg = text[0]
 
     if (firstArg === undefined) {
         return {
             textColor: this.textColor,
             backgroundColor: this.backgroundColor,
-            fontStyles: finalStyles,
+            fontStyles: this.fontStyles,
         }
-    }
-    if (text.length === 1 && typeof firstArg === 'string') {
-        return {
-            text: firstArg,
-            textColor: this.textColor,
-            backgroundColor: this.backgroundColor,
-            fontStyles: finalStyles,
-        }
-    }
-
-    /**
-     * Applies the current builder style to a single part.
-     *
-     * Existing values on `StyledText` objects are preserved and only
-     * missing style fields are filled in.
-     */
-    const clean = (part: string | StyledText): StyledText => {
-        if (typeof part === 'string') {
-            return {
-                text: part,
-                textColor: this.textColor,
-                backgroundColor: this.backgroundColor,
-                fontStyles: finalStyles,
-            }
-        }
-        if (this.textColor !== undefined && part.textColor === undefined) {
-            part.textColor = this.textColor
-        }
-        if (
-            this.backgroundColor !== undefined &&
-            part.backgroundColor === undefined
-        ) {
-            part.backgroundColor = this.backgroundColor
-        }
-        if (finalStyles !== undefined && part.fontStyles === undefined) {
-            part.fontStyles = finalStyles
-        }
-        return part
     }
     if (text.length === 1 && !Array.isArray(firstArg)) {
-        return clean(firstArg)
+        return clean.call(this, firstArg)
     }
     const results: StyledText[] = []
 
     for (const part of text) {
         if (Array.isArray(part)) {
             for (const subPart of part) {
-                results.push(clean(subPart))
+                results.push(clean.call(this, subPart))
             }
         } else {
-            results.push(clean(part))
+            results.push(clean.call(this, part))
         }
     }
+
     return results
 }
 
@@ -247,7 +237,7 @@ function concat(...text: (StyledText | StyledText[])[]): StyledText[] {
 }
 
 /**
- * Global style factory used to create chainable lazy style builders
+ * Global style factory used to create chainable style builders
  *
  * Examples:
  * - `style.red.bold('hello')`
