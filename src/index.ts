@@ -17,6 +17,8 @@ export { indent, dedent } from './spacing.js'
 export { colors, backgroundColors, fontStyles } from './options.js'
 export { style, IterStyledText } from './style.js'
 export {
+    concat,
+    // concatWs,
     stripAnsi,
     renderAnsi,
     cssStyle,

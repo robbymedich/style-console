@@ -2,6 +2,32 @@ import type { Color, FontStyle } from './options.js'
 import type { StyledText } from './style.js'
 import { colorOption, fontStyleOption, colors } from './options.js'
 
+// TODO: is this what I want?
+export function concat(...text: (StyledText | StyledText[])[]): StyledText[] {
+    // const trailingSpace = /\s$/
+    const combined = []
+    // let hasSeparator = true
+
+    for (const part of text) {
+        if (Array.isArray(part)) {
+            for (const subPart of part) {
+                // if (!hasSeparator) {
+                //     combined.push({ text: ' ' })
+                // }
+                combined.push(subPart)
+                // hasSeparator = trailingSpace.test(subPart.text)
+            }
+        } else {
+            // if (!hasSeparator) {
+            //     combined.push({ text: ' ' })
+            // }
+            combined.push(part)
+            // hasSeparator = trailingSpace.test(part.text)
+        }
+    }
+    return combined
+}
+
 /**
  * Removes ANSI escape sequences from a string.
  *

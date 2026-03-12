@@ -217,8 +217,6 @@ export type StylistInitializer = {
     readonly [key in FontStyle]: StylistBuilder
 } & {
     none: Stylist
-} & {
-    concat: typeof concat
 } & ((style: Style) => StylistBuilder)
 /* eslint-enable @typescript-eslint/consistent-indexed-object-style */
 
@@ -246,32 +244,6 @@ function stylistBuilder(
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     return build as StylistBuilder
-}
-
-// TODO: is this what I want?
-function concat(...text: (StyledText | StyledText[])[]): StyledText[] {
-    const trailingSpace = /\s$/
-    const combined = []
-    let hasSeparator = true
-
-    for (const part of text) {
-        if (Array.isArray(part)) {
-            for (const subPart of part) {
-                if (!hasSeparator) {
-                    combined.push({ text: ' ' })
-                }
-                combined.push(subPart)
-                hasSeparator = trailingSpace.test(subPart.text)
-            }
-        } else {
-            if (!hasSeparator) {
-                combined.push({ text: ' ' })
-            }
-            combined.push(part)
-            hasSeparator = trailingSpace.test(part.text)
-        }
-    }
-    return combined
 }
 
 /**
@@ -303,14 +275,6 @@ export const style = (function () {
     Object.defineProperty(build, 'none', {
         get() {
             return stylistBuilder()
-        },
-        enumerable: true,
-    })
-
-    // set concat option
-    Object.defineProperty(build, 'concat', {
-        get() {
-            return concat
         },
         enumerable: true,
     })
