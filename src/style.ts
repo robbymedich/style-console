@@ -43,13 +43,27 @@ function clean(this: Style, part: string | StyledText): StyledText {
     return part
 }
 
+function* cleanSegments(
+    style: Style,
+    segements: (string | StyledText | Iterable<StyledText, void, undefined>)[]
+): Generator<StyledText> {
+    for (const segment of segements) {
+        if (typeof segment === 'string' || 'text' in segment) {
+            yield clean.call(style, segment)
+        } else {
+            for (const subSegment of segment) {
+                yield clean.call(style, subSegment)
+            }
+        }
+    }
+}
+
 export class IterStyledText implements IterableIterator<
     StyledText,
     void,
     undefined
 > {
-    private ix = 0
-    private currentSegmentIterator?: Iterator<StyledText, void, undefined>
+    private segmentIterator: Iterator<StyledText, void, undefined>
 
     constructor(
         public style: Style,
@@ -58,28 +72,12 @@ export class IterStyledText implements IterableIterator<
             | StyledText
             | Iterable<StyledText, void, undefined>
         )[],
-    ) {}
+    ) {
+        this.segmentIterator = cleanSegments(style, segements)
+    }
 
     next(): IteratorResult<StyledText, void> {
-        const currentSegment = this.segements[this.ix]
-        if (currentSegment === undefined) {
-            return { value: undefined, done: true }
-        }
-        if (typeof currentSegment === 'string' || 'text' in currentSegment) {
-            this.ix += 1
-            return { value: clean.call(this.style, currentSegment) }
-        } else {
-            if (this.currentSegmentIterator === undefined) {
-                this.currentSegmentIterator = currentSegment[Symbol.iterator]()
-            }
-            const { value, done } = this.currentSegmentIterator.next()
-            if (value === undefined || done === true) {
-                this.ix += 1
-                this.currentSegmentIterator = undefined
-                return this.next()
-            }
-            return { value: clean.call(this.style, value) }
-        }
+        return this.segmentIterator.next()
     }
 
     [Symbol.iterator](): IterStyledText {
