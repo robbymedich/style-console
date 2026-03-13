@@ -15,8 +15,7 @@ export type {
 } from './style.js'
 export { indent, dedent } from './spacing.js'
 export { colors, backgroundColors, fontStyles } from './options.js'
-export { style, IterStyledText } from './style.js'
-export { style2, renderAnsi2 } from './style2.js'
+export { style } from './style.js'
 export {
     concat,
     // concatWs,

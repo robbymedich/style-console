@@ -43,48 +43,6 @@ function clean(this: Style, part: string | StyledText): StyledText {
     return part
 }
 
-function* cleanSegments(
-    style: Style,
-    segements: (string | StyledText | Iterable<StyledText, void, undefined>)[]
-): Generator<StyledText> {
-    for (const segment of segements) {
-        if (typeof segment === 'string' || 'text' in segment) {
-            yield clean.call(style, segment)
-        } else {
-            for (const subSegment of segment) {
-                yield clean.call(style, subSegment)
-            }
-        }
-    }
-}
-
-export class IterStyledText implements IterableIterator<
-    StyledText,
-    void,
-    undefined
-> {
-    private segmentIterator: Iterator<StyledText, void, undefined>
-
-    constructor(
-        public style: Style,
-        private segements: (
-            | string
-            | StyledText
-            | Iterable<StyledText, void, undefined>
-        )[],
-    ) {
-        this.segmentIterator = cleanSegments(style, segements)
-    }
-
-    next(): IteratorResult<StyledText, void> {
-        return this.segmentIterator.next()
-    }
-
-    [Symbol.iterator](): IterStyledText {
-        return new IterStyledText(this.style, this.segements)
-    }
-}
-
 /**
  * Callable used to build `StyledText` from `string` or other
  * `StyledText` objects. If a `StyledText` argument is used the current

@@ -1,74 +1,12 @@
 import { expect, test, describe } from 'bun:test'
 import { colors, fontStyles } from '../src/options.ts'
-import { style, IterStyledText } from '../src/style'
+import { style } from '../src/style'
 import type { StyledText } from '../src/style.ts'
 
 // perform unsafe casting to test edge cases people will do even though it
 // doesn't align to the proper types
 /* eslint-disable @typescript-eslint/no-unsafe-type-assertion  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
-describe('IterStyledText', () => {
-    test('empty list', () => {
-        expect([...new IterStyledText(style.none(), [])]).toEqual([])
-    })
-
-    test('all strings', () => {
-        expect([...new IterStyledText(style.red(), ['hello'])]).toEqual([
-            { text: 'hello', textColor: 'red' },
-        ])
-        expect([...new IterStyledText(style.red(), ['hi', 'world'])]).toEqual([
-            { text: 'hi', textColor: 'red' },
-            { text: 'world', textColor: 'red' },
-        ])
-    })
-
-    test('all styled text', () => {
-        expect([
-            ...new IterStyledText(style.bgBlue(), [
-                { text: 'hi', textColor: 'red' },
-                { text: 'world', textColor: 'red' },
-            ]),
-        ]).toEqual([
-            { text: 'hi', textColor: 'red', backgroundColor: 'blue' },
-            { text: 'world', textColor: 'red', backgroundColor: 'blue' },
-        ])
-    })
-
-    test('array of styled text', () => {
-        expect([
-            ...new IterStyledText(style.bgBlue(), [
-                [{ text: 'hi', textColor: 'red' }],
-                [{ text: 'world', textColor: 'red' }],
-            ]),
-        ]).toEqual([
-            { text: 'hi', textColor: 'red', backgroundColor: 'blue' },
-            { text: 'world', textColor: 'red', backgroundColor: 'blue' },
-        ])
-    })
-
-    test('mixed bag', () => {
-        const iter = new IterStyledText(style.red.bgBlue(), [
-            'first string',
-            new IterStyledText(style.bold, ['bold']),
-            { text: 'hello', textColor: 'white' },
-            [{ text: 'world', textColor: 'white' }],
-        ])
-        const expected: StyledText[] = [
-            { text: 'first string', textColor: 'red', backgroundColor: 'blue' },
-            {
-                text: 'bold',
-                textColor: 'red',
-                backgroundColor: 'blue',
-                fontStyles: ['bold'],
-            },
-            { text: 'hello', textColor: 'white', backgroundColor: 'blue' },
-            { text: 'world', textColor: 'white', backgroundColor: 'blue' },
-        ]
-        expect([...iter]).toEqual(expected)
-        expect([...iter]).toEqual(expected)  // make sure multiple loops work
-    })
-})
 
 describe('style no arguments', () => {
     test('all text colors', () => {
