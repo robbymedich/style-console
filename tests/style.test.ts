@@ -1,4 +1,4 @@
-import { expect, test, describe, it } from 'bun:test'
+import { expect, test, describe } from 'bun:test'
 import { colors, fontStyles } from '../src/options.ts'
 import { style, IterStyledText } from '../src/style'
 import type { StyledText } from '../src/style.ts'
