@@ -161,7 +161,7 @@ describe('cssStyle', () => {
     })
 })
 
-function renderAnsiWrapped(text: (string | StyledText)[]): string {
+function renderAnsiWrapped(text: StyledText[]): string {
     const styledText = renderAnsi(text)
     const plainText = text
         .map((part) => {
@@ -177,7 +177,7 @@ function renderAnsiWrapped(text: (string | StyledText)[]): string {
     return styledText
 }
 
-function renderWebWrapped(text: (string | StyledText)[]): string[] {
+function renderWebWrapped(text: StyledText[]): string[] {
     const styledText = renderWeb(text)
     const plainText = text
         .map((part) => {
@@ -196,10 +196,7 @@ function renderWebWrapped(text: (string | StyledText)[]): string[] {
 describe('no style', () => {
     test('renderAnsi', () => {
         expect(renderAnsiWrapped([])).toBe('')
-        expect(renderAnsiWrapped([''])).toBe('')
         expect(renderAnsiWrapped([{ text: '' }])).toBe('')
-        expect(renderAnsiWrapped(['hello', ' ', 'world'])).toBe('hello world')
-        expect(renderAnsiWrapped(['hello world'])).toBe('hello world')
         expect(renderAnsiWrapped([{ text: 'hello world' }])).toBe('hello world')
         expect(
             renderAnsiWrapped([
@@ -212,17 +209,8 @@ describe('no style', () => {
 
     test('renderWeb', () => {
         expect(renderWebWrapped([])).toEqual(['%c', 'color: currentColor'])
-        expect(renderWebWrapped([''])).toEqual(['%c', 'color: currentColor'])
         expect(renderWebWrapped([{ text: '' }])).toEqual([
             '%c',
-            'color: currentColor',
-        ])
-        expect(renderWebWrapped(['hello', ' ', 'world'])).toEqual([
-            '%chello world',
-            'color: currentColor',
-        ])
-        expect(renderWebWrapped(['hello world'])).toEqual([
-            '%chello world',
             'color: currentColor',
         ])
         expect(renderWebWrapped([{ text: 'hello world' }])).toEqual([

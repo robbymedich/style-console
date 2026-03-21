@@ -18,11 +18,11 @@ export { colors, backgroundColors, fontStyles } from './options.js'
 export { style } from './style.js'
 export {
     concat,
-    // concatWs,
+    concatWs,
     stripAnsi,
     renderAnsi,
-    cssStyle,
-    setCssColors,
     stripWeb,
     renderWeb,
+    cssStyle,
+    setCssColors,
 } from './render.js'

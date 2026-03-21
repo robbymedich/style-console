@@ -2,27 +2,54 @@ import type { Color, FontStyle } from './options.js'
 import type { StyledText } from './style.js'
 import { colorOption, fontStyleOption, colors } from './options.js'
 
-// TODO: is this what I want?
 export function concat(...text: (StyledText | StyledText[])[]): StyledText[] {
-    // const trailingSpace = /\s$/
+    // a loop is faster then flat for some reason
     const combined = []
-    // let hasSeparator = true
-
     for (const part of text) {
         if (Array.isArray(part)) {
             for (const subPart of part) {
-                // if (!hasSeparator) {
-                //     combined.push({ text: ' ' })
-                // }
                 combined.push(subPart)
-                // hasSeparator = trailingSpace.test(subPart.text)
             }
         } else {
-            // if (!hasSeparator) {
-            //     combined.push({ text: ' ' })
-            // }
             combined.push(part)
-            // hasSeparator = trailingSpace.test(part.text)
+        }
+    }
+    return combined
+}
+
+export function concatWs(
+    separator: string,
+    ...text: (StyledText | StyledText[])[]
+): StyledText[] {
+    // a loop is faster then flat for some reason
+    const combined: StyledText[] = []
+    let ix = 0
+    for (const part of text) {
+        ix += 1
+        if (Array.isArray(part)) {
+            let subIx = 0
+            for (const subPart of part) {
+                subIx += 1
+                combined.push(subPart)
+                if (subIx !== part.length) {
+                    combined.push({
+                        text: separator,
+                        textColor: subPart.textColor,
+                        backgroundColor: subPart.backgroundColor,
+                        fontStyles: subPart.fontStyles,
+                    })
+                }
+            }
+        } else {
+            combined.push(part)
+            if (ix !== text.length) {
+                combined.push({
+                    text: separator,
+                    textColor: part.textColor,
+                    backgroundColor: part.backgroundColor,
+                    fontStyles: part.fontStyles,
+                })
+            }
         }
     }
     return combined
@@ -71,18 +98,13 @@ export function equal(lhs?: FontStyle[], rhs?: FontStyle[]): boolean {
  * @returns A string containing ANSI escape sequences.
  */
 // eslint-disable-next-line complexity
-export function renderAnsi(
-    text: (StyledText | string)[] | StyledText | string,
-): string {
-    const allParts = Array.isArray(text) ? text : [text]
+export function renderAnsi(text: StyledText | StyledText[]): string {
     let textColor: Color | undefined
     let backgroundColor: Color | undefined
     let fontStyles: FontStyle[] | undefined
     const final: string[] = []
 
-    for (const rawPart of allParts) {
-        const part = typeof rawPart === 'string' ? { text: rawPart } : rawPart
-
+    for (const part of Array.isArray(text) ? text : [text]) {
         if (part.textColor !== textColor) {
             if (textColor !== undefined) {
                 final.push(colorOption[textColor].text.unset)
@@ -368,18 +390,14 @@ export function stripWeb(text: string): string {
  * @param text - A single part or list of parts to render.
  * @returns Arguments ready to spread into `console.log(...renderWeb(text))`.
  */
-export function renderWeb(
-    text: (StyledText | string)[] | StyledText | string,
-): string[] {
-    const allParts = Array.isArray(text) ? text : [text]
+export function renderWeb(text: StyledText | StyledText[]): string[] {
     let textColor: Color | undefined
     let backgroundColor: Color | undefined
     let fontStyles: FontStyle[] | undefined
     const final: string[] = []
     const args: string[] = [''] // add placeholder for final string
 
-    for (const rawPart of allParts) {
-        const part = typeof rawPart === 'string' ? { text: rawPart } : rawPart
+    for (const part of Array.isArray(text) ? text : [text]) {
         if (
             part.textColor !== textColor ||
             part.backgroundColor !== backgroundColor ||
