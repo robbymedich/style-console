@@ -74,10 +74,10 @@ export function stripAnsi(text: string): string {
  * @param rhs - right hand side
  */
 export function equal(lhs?: FontStyle[], rhs?: FontStyle[]): boolean {
-    if (lhs === rhs) {
-        return true
+    if (lhs === undefined || rhs === undefined) {
+        return lhs === rhs
     }
-    if (lhs === undefined || rhs === undefined || lhs.length !== rhs.length) {
+    if (lhs.length !== rhs.length) {
         return false
     }
     for (let ix = 0; ix < lhs.length; ix++) {
