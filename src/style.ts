@@ -13,6 +13,16 @@ export type Style = {
 /** Payload that can be rendered as ANSI or browser-console output. */
 export type StyledText = Prettify<{ text: string } & Style>
 
+let separator: string | undefined
+
+export function setSeparator(value?: string): void {
+    separator = value
+}
+
+export function getSeparator(): string | undefined {
+    return separator
+}
+
 /**
  * Applies the current builder style to a single part.
  *
@@ -94,13 +104,35 @@ function stylist(
     }
     const results: StyledText[] = []
 
+    let ix = 0
     for (const part of text) {
+        ix += 1
         if (Array.isArray(part)) {
+            let subIx = 0
             for (const subPart of part) {
-                results.push(clean.call(this, subPart))
+                subIx += 1
+                const cleanedPart = clean.call(this, subPart)
+                results.push(cleanedPart)
+                if (separator !== undefined && subIx !== part.length) {
+                    results.push({
+                        text: separator,
+                        textColor: cleanedPart.textColor,
+                        backgroundColor: cleanedPart.backgroundColor,
+                        fontStyles: cleanedPart.fontStyles,
+                    })
+                }
             }
         } else {
-            results.push(clean.call(this, part))
+            const cleanedPart = clean.call(this, part)
+            results.push(cleanedPart)
+            if (separator !== undefined && ix !== text.length) {
+                results.push({
+                    text: separator,
+                    textColor: cleanedPart.textColor,
+                    backgroundColor: cleanedPart.backgroundColor,
+                    fontStyles: cleanedPart.fontStyles,
+                })
+            }
         }
     }
 
@@ -202,6 +234,10 @@ function stylistBuilder(
     return build as StylistBuilder
 }
 
+// keep object for performance, do not create each time
+// TODO: Revert this it's still mutable so it's a bit dangerours
+const styleNone = stylistBuilder()
+
 /**
  * Global style factory used to create chainable style builders
  *
@@ -230,7 +266,7 @@ export const style = (function () {
     // set none option
     Object.defineProperty(build, 'none', {
         get() {
-            return stylistBuilder()
+            return styleNone
         },
         enumerable: true,
     })

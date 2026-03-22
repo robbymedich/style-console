@@ -1,5 +1,6 @@
 import type { Color, FontStyle } from './options.js'
 import type { StyledText } from './style.js'
+import { getSeparator, setSeparator, style } from './style.js'
 import { colorOption, fontStyleOption, colors } from './options.js'
 
 export function concat(...text: (StyledText | StyledText[])[]): StyledText[] {
@@ -22,36 +23,10 @@ export function concatWs(
     ...text: (StyledText | StyledText[])[]
 ): StyledText[] {
     // a loop is faster then flat for some reason
-    const combined: StyledText[] = []
-    let ix = 0
-    for (const part of text) {
-        ix += 1
-        if (Array.isArray(part)) {
-            let subIx = 0
-            for (const subPart of part) {
-                subIx += 1
-                combined.push(subPart)
-                if (subIx !== part.length) {
-                    combined.push({
-                        text: separator,
-                        textColor: subPart.textColor,
-                        backgroundColor: subPart.backgroundColor,
-                        fontStyles: subPart.fontStyles,
-                    })
-                }
-            }
-        } else {
-            combined.push(part)
-            if (ix !== text.length) {
-                combined.push({
-                    text: separator,
-                    textColor: part.textColor,
-                    backgroundColor: part.backgroundColor,
-                    fontStyles: part.fontStyles,
-                })
-            }
-        }
-    }
+    const currentSeparator = getSeparator()
+    setSeparator(separator)
+    const combined = style.none(...text)
+    setSeparator(currentSeparator)
     return combined
 }
 
@@ -88,6 +63,35 @@ export function equal(lhs?: FontStyle[], rhs?: FontStyle[]): boolean {
     return true
 }
 
+function renderSingleAnsi(text: StyledText): string {
+    const setTextColor = text.textColor === undefined
+        ? ''
+        : colorOption[text.textColor].text.set
+    const unsetTextColor = text.textColor === undefined
+        ? ''
+        : colorOption[text.textColor].text.unset
+    const setBackgroundColor = text.backgroundColor === undefined
+        ? ''
+        : colorOption[text.backgroundColor].text.set
+    const unsetBackgroundColor = text.backgroundColor === undefined
+        ? ''
+        : colorOption[text.backgroundColor].text.unset
+    const setFontStyles = text.fontStyles === undefined
+        ? ''
+        : text.fontStyles.map((fontStyle) => fontStyleOption[fontStyle].set)
+    const unsetFontStyles = text.fontStyles === undefined
+        ? ''
+        : text.fontStyles.map((fontStyle) => fontStyleOption[fontStyle].unset)
+
+    return setTextColor +
+        setBackgroundColor +
+        setFontStyles +
+        text.text +
+        unsetTextColor +
+        unsetBackgroundColor +
+        unsetFontStyles
+}
+
 /**
  * Renders lazy styled text into a single ANSI-styled string.
  *
@@ -99,12 +103,16 @@ export function equal(lhs?: FontStyle[], rhs?: FontStyle[]): boolean {
  */
 // eslint-disable-next-line complexity
 export function renderAnsi(text: StyledText | StyledText[]): string {
+    if (!Array.isArray(text)) {
+        return renderSingleAnsi(text)
+    }
+
     let textColor: Color | undefined
     let backgroundColor: Color | undefined
     let fontStyles: FontStyle[] | undefined
     const final: string[] = []
 
-    for (const part of Array.isArray(text) ? text : [text]) {
+    for (const part of text) {
         if (part.textColor !== textColor) {
             if (textColor !== undefined) {
                 final.push(colorOption[textColor].text.unset)
