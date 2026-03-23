@@ -47,45 +47,18 @@ function clean(currentStyle: Style, part: string | StyledText): StyledText {
     ) {
         part.backgroundColor = currentStyle.backgroundColor
     }
-    if (currentStyle.fontStyles !== undefined && part.fontStyles === undefined) {
+    if (
+        currentStyle.fontStyles !== undefined &&
+        part.fontStyles === undefined
+    ) {
         part.fontStyles = currentStyle.fontStyles
     }
     return part
 }
 
-/**
- * Callable used to build `StyledText` from `string` or other
- * `StyledText` objects. If a `StyledText` argument is used the current
- * linked style will fill in gaps in the already styled text, but it will not
- * override the existing styles.
- *
- * Calling without any arguments returns the linked `Style` object used to
- * lazily style text.
- *
- * Calling with a list or multiple arguments returns `StyledText`[].
- */
-function stylist(): Style
-/**
- * Create a `StyledText` object from a string or another `StyledText`
- * object. Current styles are preserved, but any missing styles are added if
- * called with a `StyledText` object
- *
- * @param text - input `string` or `StyledText` to style.
- * @returns `StyledText` object with the applied styles
- */
-function stylist(text: string | StyledText): StyledText
-/**
- * Create a list of `StyledText` objects from `string`(s) or other
- * `StyledText` objects. Current styles are preserved, but any missing
- * styles are added if `StyledText` objects are provided as arguments.
- *
- * @param text - list of `string` or `StyledText` arguments to style.
- * @returns `StyledText[]` with applied styles to all input arguments
- */
-function stylist(...text: (string | StyledText | StyledText[])[]): StyledText[]
 function stylist(
     this: Style,
-    ...text: (string | StyledText | StyledText[])[]
+    text: (string | StyledText | StyledText[])[],
 ): Style | StyledText | StyledText[] {
     if (this === undefined) {
         throw new Error("style context not found, 'this' binding incorrect")
@@ -139,16 +112,18 @@ function stylist(
     return results
 }
 
+const stylistPrototype = Object.getPrototypeOf(stylist)
+
 // Set color options on the builder
 for (const color of colors) {
-    Object.defineProperty(stylist.prototype, color, {
+    Object.defineProperty(stylistPrototype, color, {
         get() {
             this.textColor = color
             return this
         },
         enumerable: true,
     })
-    Object.defineProperty(stylist.prototype, `bg${capitalize(color)}`, {
+    Object.defineProperty(stylistPrototype, `bg${capitalize(color)}`, {
         get() {
             this.backgroundColor = color
             return this
@@ -159,7 +134,7 @@ for (const color of colors) {
 
 // Set font style options on the builder
 for (const fontStyle of fontStyles) {
-    Object.defineProperty(stylist.prototype, fontStyle, {
+    Object.defineProperty(stylistPrototype, fontStyle, {
         get() {
             if (this.fontStyles === undefined) {
                 this.fontStyles = []
@@ -174,7 +149,11 @@ for (const fontStyle of fontStyles) {
 }
 
 /** Callable style function type used by concrete builder instances. */
-export type Stylist = typeof stylist
+export type Stylist = {
+    (): Style
+    (text: string | StyledText): StyledText
+    (...text: (string | StyledText | StyledText[])[]): StyledText[]
+}
 
 /**
  * Chainable style builder instance.
@@ -221,16 +200,22 @@ function stylistBuilder(
     backgroundColor?: Color,
     fontStyles?: FontStyle[],
 ): StylistBuilder {
-    const build = function (...args: Parameters<Stylist>): ReturnType<Stylist> {
-        return stylist.call(build, ...args)
+    function build(): Style
+    function build(text: string | StyledText): StyledText
+    function build(
+        ...text: (string | StyledText | StyledText[])[]
+    ): StyledText[]
+    function build(
+        ...text: (string | StyledText | StyledText[])[]
+    ): Style | StyledText | StyledText[] {
+        return stylist.call(build, text)
     }
+    Object.setPrototypeOf(build, stylistPrototype)
 
-    Object.setPrototypeOf(build, stylist.prototype)
     build.textColor = textColor
     build.backgroundColor = backgroundColor
     build.fontStyles = fontStyles
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     return build as StylistBuilder
 }
 

@@ -85,13 +85,15 @@ function renderSingleAnsi(text: StyledText): string {
         }
     }
 
-    return setTextColor +
+    return (
+        setTextColor +
         setBackgroundColor +
         setFontStyles +
         text.text +
         unsetTextColor +
         unsetBackgroundColor +
         unsetFontStyles
+    )
 }
 
 /**
