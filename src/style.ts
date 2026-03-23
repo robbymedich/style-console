@@ -29,26 +29,26 @@ export function getSeparator(): string | undefined {
  * Existing values on `StyledText` objects are preserved and only
  * missing style fields are filled in.
  */
-function clean(this: Style, part: string | StyledText): StyledText {
+function clean(currentStyle: Style, part: string | StyledText): StyledText {
     if (typeof part === 'string') {
         return {
             text: part,
-            textColor: this.textColor,
-            backgroundColor: this.backgroundColor,
-            fontStyles: this.fontStyles,
+            textColor: currentStyle.textColor,
+            backgroundColor: currentStyle.backgroundColor,
+            fontStyles: currentStyle.fontStyles,
         }
     }
-    if (this.textColor !== undefined && part.textColor === undefined) {
-        part.textColor = this.textColor
+    if (currentStyle.textColor !== undefined && part.textColor === undefined) {
+        part.textColor = currentStyle.textColor
     }
     if (
-        this.backgroundColor !== undefined &&
+        currentStyle.backgroundColor !== undefined &&
         part.backgroundColor === undefined
     ) {
-        part.backgroundColor = this.backgroundColor
+        part.backgroundColor = currentStyle.backgroundColor
     }
-    if (this.fontStyles !== undefined && part.fontStyles === undefined) {
-        part.fontStyles = this.fontStyles
+    if (currentStyle.fontStyles !== undefined && part.fontStyles === undefined) {
+        part.fontStyles = currentStyle.fontStyles
     }
     return part
 }
@@ -100,7 +100,7 @@ function stylist(
         }
     }
     if (text.length === 1 && !Array.isArray(firstArg)) {
-        return clean.call(this, firstArg)
+        return clean(this, firstArg)
     }
     const results: StyledText[] = []
 
@@ -111,7 +111,7 @@ function stylist(
             let subIx = 0
             for (const subPart of part) {
                 subIx += 1
-                const cleanedPart = clean.call(this, subPart)
+                const cleanedPart = clean(this, subPart)
                 results.push(cleanedPart)
                 if (separator !== undefined && subIx !== part.length) {
                     results.push({
@@ -123,7 +123,7 @@ function stylist(
                 }
             }
         } else {
-            const cleanedPart = clean.call(this, part)
+            const cleanedPart = clean(this, part)
             results.push(cleanedPart)
             if (separator !== undefined && ix !== text.length) {
                 results.push({

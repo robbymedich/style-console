@@ -113,6 +113,8 @@ export function renderAnsi(text: StyledText | StyledText[]): string {
     let fontStyles: FontStyle[] | undefined
     let final: string = ''
 
+    // TODO: try the all at once styling again since multiple styles make this
+    // slow down, may be a bit slower but will be more consistent?
     for (const part of text) {
         if (part.textColor !== textColor) {
             if (textColor !== undefined) {
