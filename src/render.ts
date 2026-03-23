@@ -1,5 +1,5 @@
 import type { Color, FontStyle } from './options.js'
-import type { StyledText } from './style.js'
+import type { StyledText, Style } from './style.js'
 import { getSeparator, setSeparator, style } from './style.js'
 import { colorOption, fontStyleOption, colors } from './options.js'
 
@@ -64,24 +64,26 @@ export function equal(lhs?: FontStyle[], rhs?: FontStyle[]): boolean {
 }
 
 function renderSingleAnsi(text: StyledText): string {
-    const setTextColor = text.textColor === undefined
-        ? ''
-        : colorOption[text.textColor].text.set
-    const unsetTextColor = text.textColor === undefined
-        ? ''
-        : colorOption[text.textColor].text.unset
-    const setBackgroundColor = text.backgroundColor === undefined
-        ? ''
-        : colorOption[text.backgroundColor].text.set
-    const unsetBackgroundColor = text.backgroundColor === undefined
-        ? ''
-        : colorOption[text.backgroundColor].text.unset
-    const setFontStyles = text.fontStyles === undefined
-        ? ''
-        : text.fontStyles.map((fontStyle) => fontStyleOption[fontStyle].set)
-    const unsetFontStyles = text.fontStyles === undefined
-        ? ''
-        : text.fontStyles.map((fontStyle) => fontStyleOption[fontStyle].unset)
+    let setTextColor = ''
+    let unsetTextColor = ''
+    if (text.textColor !== undefined) {
+        setTextColor = colorOption[text.textColor].text.set
+        unsetTextColor = colorOption[text.textColor].text.unset
+    }
+    let setBackgroundColor = ''
+    let unsetBackgroundColor = ''
+    if (text.backgroundColor !== undefined) {
+        setBackgroundColor = colorOption[text.backgroundColor].text.set
+        unsetBackgroundColor = colorOption[text.backgroundColor].text.unset
+    }
+    let setFontStyles = ''
+    let unsetFontStyles = ''
+    if (text.fontStyles !== undefined) {
+        for (const fontStyle of text.fontStyles) {
+            setFontStyles += fontStyleOption[fontStyle].set
+            unsetFontStyles += fontStyleOption[fontStyle].unset
+        }
+    }
 
     return setTextColor +
         setBackgroundColor +
@@ -103,16 +105,12 @@ function renderSingleAnsi(text: StyledText): string {
  */
 // eslint-disable-next-line complexity
 export function renderAnsi(text: StyledText | StyledText[]): string {
-    if (!Array.isArray(text)) {
-        return renderSingleAnsi(text)
-    }
-
     let textColor: Color | undefined
     let backgroundColor: Color | undefined
     let fontStyles: FontStyle[] | undefined
     const final: string[] = []
 
-    for (const part of text) {
+    for (const part of Array.isArray(text) ? text : [text]) {
         if (part.textColor !== textColor) {
             if (textColor !== undefined) {
                 final.push(colorOption[textColor].text.unset)
@@ -175,6 +173,88 @@ export function renderAnsi(text: StyledText | StyledText[]): string {
         }
     }
     return final.join('')
+}
+
+export function renderAnsi2(text: StyledText | StyledText[]): string {
+    // if (!Array.isArray(text)) {
+    //     return renderSingleAnsi(text)
+    // }
+    let prior: Style = {}
+    let final: string = ''
+
+    for (const part of Array.isArray(text) ? text : [text]) {
+        let setTextColor = ''
+        let unsetTextColor = ''
+        if (part.textColor !== prior.textColor) {
+            if (part.textColor !== undefined) {
+                setTextColor = colorOption[part.textColor].text.set
+            }
+            if (prior.textColor !== undefined) {
+                unsetTextColor = colorOption[prior.textColor].text.unset
+            }
+        }
+        let setBackgroundColor = ''
+        let unsetBackgroundColor = ''
+        if (part.backgroundColor !== prior.backgroundColor) {
+            if (part.backgroundColor !== undefined) {
+                setBackgroundColor = colorOption[part.backgroundColor].background.set
+            }
+            if (prior.backgroundColor !== undefined) {
+                unsetBackgroundColor = colorOption[prior.backgroundColor].background.unset
+            }
+        }
+        let setFontStyles = ''
+        let unsetFontStyles = ''
+        if (!equal(part.fontStyles, prior.fontStyles)) {
+            const fontStyleFlags: Partial<Record<FontStyle, boolean>> = {}
+            if (part.fontStyles !== undefined) {
+                for (const fontStyle of part.fontStyles) {
+                    fontStyleFlags[fontStyle] = true
+                }
+            }
+            if (prior.fontStyles !== undefined) {
+                for (const fontStyle of prior.fontStyles) {
+                    // eslint-disable-next-line max-depth
+                    if (fontStyleFlags[fontStyle] === true) {
+                        fontStyleFlags[fontStyle] = false  // already set
+                    } else {
+                        unsetFontStyles += fontStyleOption[fontStyle].unset
+                    }
+                }
+            }
+            if (part.fontStyles !== undefined) {
+                for (const fontStyle of part.fontStyles) {
+                    // eslint-disable-next-line max-depth
+                    if (fontStyleFlags[fontStyle] === true) {
+                        setFontStyles += fontStyleOption[fontStyle].set
+                    }
+                }
+            }
+        }
+        final += (
+            unsetTextColor +
+            unsetBackgroundColor +
+            unsetFontStyles +
+            setTextColor +
+            setBackgroundColor +
+            setFontStyles +
+            part.text
+        )
+        prior = part
+    }
+
+    if (prior.textColor !== undefined) {
+        final += colorOption[prior.textColor].text.unset
+    }
+    if (prior.backgroundColor !== undefined) {
+        final += colorOption[prior.backgroundColor].background.unset
+    }
+    if (prior.fontStyles !== undefined) {
+        for (const fontStyle of prior.fontStyles) {
+            final += fontStyleOption[fontStyle].unset
+        }
+    }
+    return final
 }
 
 /** Default CSS color theme used when rendering for browser consoles. */
