@@ -57,23 +57,19 @@ function clean(currentStyle: Style, part: string | StyledText): StyledText {
 }
 
 function stylist(
-    this: Style,
+    currentStyle: Style,
     text: (string | StyledText | StyledText[])[],
 ): Style | StyledText | StyledText[] {
-    if (this === undefined) {
-        throw new Error("style context not found, 'this' binding incorrect")
-    }
     const firstArg = text[0]
-
     if (firstArg === undefined) {
         return {
-            textColor: this.textColor,
-            backgroundColor: this.backgroundColor,
-            fontStyles: this.fontStyles,
+            textColor: currentStyle.textColor,
+            backgroundColor: currentStyle.backgroundColor,
+            fontStyles: currentStyle.fontStyles,
         }
     }
     if (text.length === 1 && !Array.isArray(firstArg)) {
-        return clean(this, firstArg)
+        return clean(currentStyle, firstArg)
     }
     const results: StyledText[] = []
 
@@ -84,7 +80,7 @@ function stylist(
             let subIx = 0
             for (const subPart of part) {
                 subIx += 1
-                const cleanedPart = clean(this, subPart)
+                const cleanedPart = clean(currentStyle, subPart)
                 results.push(cleanedPart)
                 if (separator !== undefined && subIx !== part.length) {
                     results.push({
@@ -96,7 +92,7 @@ function stylist(
                 }
             }
         } else {
-            const cleanedPart = clean(this, part)
+            const cleanedPart = clean(currentStyle, part)
             results.push(cleanedPart)
             if (separator !== undefined && ix !== text.length) {
                 results.push({
@@ -208,7 +204,7 @@ function stylistBuilder(
     function build(
         ...text: (string | StyledText | StyledText[])[]
     ): Style | StyledText | StyledText[] {
-        return stylist.call(build, text)
+        return stylist(build, text)
     }
     Object.setPrototypeOf(build, stylistPrototype)
 
@@ -218,10 +214,6 @@ function stylistBuilder(
 
     return build as StylistBuilder
 }
-
-// keep object for performance, do not create each time
-// TODO: Revert this it's still mutable so it's a bit dangerours
-const styleNone = stylistBuilder()
 
 /**
  * Global style factory used to create chainable style builders
@@ -251,7 +243,7 @@ export const style = (function () {
     // set none option
     Object.defineProperty(build, 'none', {
         get() {
-            return styleNone
+            return stylistBuilder()
         },
         enumerable: true,
     })
