@@ -1,8 +1,13 @@
 import type { Color, FontStyle } from './options.js'
 import type { StyledText } from './style.js'
-import { getSeparator, setSeparator } from './style.js'
 import { colorOption, fontStyleOption, colors } from './options.js'
 
+/**
+ * Merge `StyledText` arguments into a single flattened list.
+ *
+ * @param text - StyledText or StyledText[] arguments to flatten and merge.
+ * @returns A list with all elements and subelements from the text arguments.
+ */
 export function concat(...text: (StyledText | StyledText[])[]): StyledText[] {
     // a loop is faster then flat for some reason
     const combined = []
@@ -18,13 +23,21 @@ export function concat(...text: (StyledText | StyledText[])[]): StyledText[] {
     return combined
 }
 
+/**
+ * Merge `StyledText` arguments into a single flattened list. Add an unstyled
+ * or styled separator between outer arguments. The separator is not added to
+ * elements of the subarray.
+ *
+ * @param separator - Unstyled or styled text to use as a separator.
+ * @param text - StyledText or StyledText[] arguments to flatten and merge.
+ * @returns A list with all elements and subelements from the text arguments.
+ */
 export function concatWs(
-    separator: string,
+    separator: string | StyledText,
     ...text: (StyledText | StyledText[])[]
 ): StyledText[] {
-    const currentSeparator = getSeparator()
-    setSeparator(separator)
-
+    const styledSeparator =
+        typeof separator === 'string' ? { text: separator } : separator
     const combined: StyledText[] = []
     let ix = 0
     for (const part of text) {
@@ -35,18 +48,16 @@ export function concatWs(
                 subIx += 1
                 combined.push(subPart)
                 if (subIx !== part.length) {
-                    combined.push({ text: separator })
+                    combined.push(styledSeparator)
                 }
             }
         } else {
             combined.push(part)
             if (ix !== text.length) {
-                combined.push({ text: separator })
+                combined.push(styledSeparator)
             }
         }
     }
-
-    setSeparator(currentSeparator)
     return combined
 }
 
@@ -83,6 +94,12 @@ export function equal(lhs?: FontStyle[], rhs?: FontStyle[]): boolean {
     return true
 }
 
+/**
+ * Renders styled text into a single ANSI-styled string.
+ *
+ * @param text - A single part to render.
+ * @returns A string containing ANSI escape sequences.
+ */
 function renderSingleAnsi(text: StyledText): string {
     let setTextColor = ''
     let unsetTextColor = ''
@@ -117,7 +134,7 @@ function renderSingleAnsi(text: StyledText): string {
 }
 
 /**
- * Renders lazy styled text into a single ANSI-styled string.
+ * Renders styled text into a single ANSI-styled string.
  *
  * The renderer only emits escape sequences when the effective style changes
  * between adjacent parts, which keeps the output smaller and easier to read.
@@ -133,7 +150,7 @@ export function renderAnsi(text: StyledText | StyledText[]): string {
     let textColor: Color | undefined
     let backgroundColor: Color | undefined
     let fontStyles: FontStyle[] | undefined
-    let final: string = ''
+    let final = ''
 
     for (const part of text) {
         if (part.textColor !== textColor) {
@@ -412,7 +429,7 @@ export function stripWeb(text: string): string {
 }
 
 /**
- * Renders lazy styled text into the argument list expected by the browser's
+ * Renders styled text into the argument list expected by the browser's
  * `console.log`.
  *
  * The first element is the formatted string containing `%c` markers. Remaining

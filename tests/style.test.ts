@@ -256,3 +256,35 @@ describe('style multiple arguments', () => {
         ])
     })
 })
+
+describe('style nested arguments', () => {
+    test('nested colors', () => {
+        expect(
+            style.red('red', style.blue('blue'), style.bgCyan('redBgCyan')),
+        ).toEqual([
+            { text: 'red', textColor: 'red' },
+            { text: 'blue', textColor: 'blue' },
+            { text: 'redBgCyan', textColor: 'red', backgroundColor: 'cyan' },
+        ])
+    })
+
+    test('nested backgrounds', () => {
+        expect(
+            style.bgRed('red', style.bgBlue('blue'), style.cyan('redBgCyan')),
+        ).toEqual([
+            { text: 'red', backgroundColor: 'red' },
+            { text: 'blue', backgroundColor: 'blue' },
+            { text: 'redBgCyan', textColor: 'cyan', backgroundColor: 'red' },
+        ])
+    })
+
+    test('nested font-styles', () => {
+        expect(
+            style.bold('bold', style.blue('blue'), style.italic('italic')),
+        ).toEqual([
+            { text: 'bold', fontStyles: ['bold'] },
+            { text: 'blue', textColor: 'blue', fontStyles: ['bold'] },
+            { text: 'italic', fontStyles: ['italic'] },
+        ])
+    })
+})

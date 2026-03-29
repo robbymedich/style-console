@@ -25,5 +25,4 @@ export {
     renderWeb,
     cssStyle,
     setCssColors,
-    // generator
 } from './render.js'

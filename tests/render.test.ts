@@ -547,7 +547,7 @@ describe('nested style(s)', () => {
             'and this is bold again.',
         )
         // bold and dim text share the same ANSI reset code
-        expect(renderAnsi(text)).toEqual(
+        expect(renderAnsiWrapped(text)).toEqual(
             fontStyleOption.bold.set +
                 'this is bold, ' +
                 fontStyleOption.bold.unset +
@@ -558,7 +558,7 @@ describe('nested style(s)', () => {
                 'and this is bold again.' +
                 fontStyleOption.bold.unset,
         )
-        expect(renderWeb(text)).toEqual([
+        expect(renderWebWrapped(text)).toEqual([
             '%cthis is bold, %cthis is dimmed, %cand this is bold again.',
             'font-weight: bold',
             'color: rgb(from currentColor r g b / 0.5)',
@@ -573,7 +573,7 @@ describe('nested style(s)', () => {
             'single',
         )
         // underline and doubleunderline text share the same ANSI reset code
-        expect(renderAnsi(text)).toEqual(
+        expect(renderAnsiWrapped(text)).toEqual(
             fontStyleOption.underline.set +
                 'single' +
                 fontStyleOption.underline.unset +
@@ -584,7 +584,7 @@ describe('nested style(s)', () => {
                 'single' +
                 fontStyleOption.underline.unset,
         )
-        expect(renderWeb(text)).toEqual([
+        expect(renderWebWrapped(text)).toEqual([
             '%csingle%c double %csingle',
             'text-decoration: underline',
             'text-decoration: underline double',
@@ -592,3 +592,5 @@ describe('nested style(s)', () => {
         ])
     })
 })
+
+// TODO: tests for single argument render and escape sequence testing on render web and concat and concatWs

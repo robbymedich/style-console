@@ -13,16 +13,6 @@ export type Style = {
 /** Payload that can be rendered as ANSI or browser-console output. */
 export type StyledText = Prettify<{ text: string } & Style>
 
-let separator: string | undefined
-
-export function setSeparator(value?: string): void {
-    separator = value
-}
-
-export function getSeparator(): string | undefined {
-    return separator
-}
-
 /**
  * Applies the current builder style to a single part.
  *
@@ -56,10 +46,12 @@ function clean(currentStyle: Style, part: string | StyledText): StyledText {
     return part
 }
 
+/** Main function to build StyledText from an input Style */
 function stylist(
     currentStyle: Style,
     text: (string | StyledText | StyledText[])[],
 ): Style | StyledText | StyledText[] {
+    // no arguments
     const firstArg = text[0]
     if (firstArg === undefined) {
         return {
@@ -68,46 +60,29 @@ function stylist(
             fontStyles: currentStyle.fontStyles,
         }
     }
+
+    // single non-array argument
     if (text.length === 1 && !Array.isArray(firstArg)) {
         return clean(currentStyle, firstArg)
     }
-    const results: StyledText[] = []
 
-    let ix = 0
+    // multi-argument
+    const results: StyledText[] = []
     for (const part of text) {
-        ix += 1
         if (Array.isArray(part)) {
-            let subIx = 0
             for (const subPart of part) {
-                subIx += 1
                 const cleanedPart = clean(currentStyle, subPart)
                 results.push(cleanedPart)
-                if (separator !== undefined && subIx !== part.length) {
-                    results.push({
-                        text: separator,
-                        textColor: cleanedPart.textColor,
-                        backgroundColor: cleanedPart.backgroundColor,
-                        fontStyles: cleanedPart.fontStyles,
-                    })
-                }
             }
         } else {
             const cleanedPart = clean(currentStyle, part)
             results.push(cleanedPart)
-            if (separator !== undefined && ix !== text.length) {
-                results.push({
-                    text: separator,
-                    textColor: cleanedPart.textColor,
-                    backgroundColor: cleanedPart.backgroundColor,
-                    fontStyles: cleanedPart.fontStyles,
-                })
-            }
         }
     }
-
     return results
 }
 
+// Store prototype as a variable to improve performance
 const stylistPrototype = Object.getPrototypeOf(stylist)
 
 // Set color options on the builder
@@ -146,8 +121,37 @@ for (const fontStyle of fontStyles) {
 
 /** Callable style function type used by concrete builder instances. */
 export type Stylist = {
+    /**
+     * Callable used to build `StyledText` from `string` or other
+     * `StyledText` objects. If a `StyledText` argument is used, the existing
+     * text color, background color and font styles will not be overridden but
+     * missing styles will be added.
+     *
+     * Calling without any arguments returns the linked `Style` object used to
+     * lazily style text.
+     *
+     * Calling with a list or multiple arguments returns `StyledText`[].
+     */
     (): Style
+    /**
+     * Create a `StyledText` object from a string or another `StyledText`
+     * object. If a `StyledText` argument is used, the existing text color,
+     * background color and font styles will not be overridden but missing
+     * styles will be added.
+     *
+     * @param text - input `string` or `StyledText` to style.
+     * @returns `StyledText` object with the applied styles
+     */
     (text: string | StyledText): StyledText
+    /**
+     * Create a list of `StyledText` objects from `string`(s) or other
+     * `StyledText` objects. If a `StyledText` argument is used, the existing
+     * text color, background color and font styles will not be overridden but
+     * missing styles will be added.
+     *
+     * @param text - list of `string` or `StyledText` arguments to style.
+     * @returns `StyledText[]` with applied styles to all input arguments
+     */
     (...text: (string | StyledText | StyledText[])[]): StyledText[]
 }
 
@@ -212,6 +216,7 @@ function stylistBuilder(
     build.backgroundColor = backgroundColor
     build.fontStyles = fontStyles
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     return build as StylistBuilder
 }
 
