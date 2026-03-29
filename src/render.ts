@@ -174,25 +174,70 @@ export function renderAnsi(text: StyledText | StyledText[]): string {
     return final
 }
 
-/** Default CSS color theme used when rendering for browser consoles. */
-const cssColorTheme: Record<Color, string> = {
-    black: '#000000',
-    white: '#E5E5E5',
-    grey: '#777777',
-    greyBright: '#B7B7B7',
-    blue: '#0A3CD2',
-    blueBright: '#0A78FF',
-    cyan: '#1E9BA5',
-    cyanBright: '#1EC8D2',
-    green: '#239B32',
-    greenBright: '#23D232',
-    magenta: '#9B46A5',
-    magentaBright: '#C846D2',
-    red: '#9B2319',
-    redBright: '#D22319',
-    yellow: '#9B9100',
-    yellowBright: '#D2C800',
+/** CSS Color(s), can be used to change styling with setCssColors */
+export const cssColorThemes: {
+    default: Record<Color, string>
+    chromeLight: Record<Color, string>
+    chromeDark: Record<Color, string>
+} = {
+    default: {
+        black: '#000000',
+        white: '#E5E5E5',
+        grey: '#777777',
+        greyBright: '#B7B7B7',
+        blue: '#0A3CD2',
+        blueBright: '#0A78FF',
+        cyan: '#1E9BA5',
+        cyanBright: '#1EC8D2',
+        green: '#239B32',
+        greenBright: '#23D232',
+        magenta: '#9B46A5',
+        magentaBright: '#C846D2',
+        red: '#9B2319',
+        redBright: '#D22319',
+        yellow: '#9B9100',
+        yellowBright: '#D2C800',
+    },
+    chromeLight: {
+        black: '#000000',
+        white: '#FFFFFF',
+        grey: '#555555',
+        greyBright: '#AAAAAA',
+        blue: '#0000AA',
+        blueBright: '#5555FF',
+        cyan: '#00AAAA',
+        cyanBright: '#55FFFF',
+        green: '#00AA00',
+        greenBright: '#55FF55',
+        magenta: '#AA00AA',
+        magentaBright: '#FF55FF',
+        red: '#AA0000',
+        redBright: '#FF5555',
+        yellow: '#AA5500',
+        yellowBright: '#FFFF55',
+    },
+    chromeDark: {
+        black: '#000000',
+        white: '#FFFFFF',
+        grey: '#898989',
+        greyBright: '#cfd0d0',
+        blue: '#2774f0',
+        blueBright: '#669df6',
+        cyan: '#12b5cb',
+        cyanBright: '#84f0ff',
+        green: '#01c800',
+        greenBright: '#9BF5B1',
+        magenta: '#a142f4',
+        magentaBright: '#d670d6',
+        red: '#ed4e4c',
+        redBright: '#f28b82',
+        yellow: '#d2c057',
+        yellowBright: '#ddfb55',
+    },
 }
+
+/** Default CSS color theme used when rendering for browser consoles. */
+const cssColorTheme: Record<Color, string> = cssColorThemes.default
 
 /**
  * Overrides one or more colors in the browser-console CSS theme.
