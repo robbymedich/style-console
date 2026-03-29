@@ -26,7 +26,7 @@ export function concat(...text: (StyledText | StyledText[])[]): StyledText[] {
 /**
  * Merge `StyledText` arguments into a single flattened list. Add an unstyled
  * or styled separator between outer arguments. The separator is not added to
- * elements of the subarray.
+ * elements of any sub-arrays.
  *
  * @param separator - Unstyled or styled text to use as a separator.
  * @param text - StyledText or StyledText[] arguments to flatten and merge.
@@ -39,23 +39,18 @@ export function concatWs(
     const styledSeparator =
         typeof separator === 'string' ? { text: separator } : separator
     const combined: StyledText[] = []
-    let ix = 0
+    let len = 0
     for (const part of text) {
-        ix += 1
         if (Array.isArray(part)) {
-            let subIx = 0
             for (const subPart of part) {
-                subIx += 1
                 combined.push(subPart)
-                if (subIx !== part.length) {
-                    combined.push(styledSeparator)
-                }
             }
         } else {
             combined.push(part)
-            if (ix !== text.length) {
-                combined.push(styledSeparator)
-            }
+        }
+        len += 1
+        if (len !== text.length) {
+            combined.push(styledSeparator)
         }
     }
     return combined

@@ -14,6 +14,8 @@ import {
     setCssColors,
     stripWeb,
     renderWeb,
+    concat,
+    concatWs,
     equal, // internal only
 } from '../src/render'
 import type { Color } from '../src/options'
@@ -593,4 +595,106 @@ describe('nested style(s)', () => {
     })
 })
 
-// TODO: tests for single argument render and escape sequence testing on render web and concat and concatWs
+describe('single argument', () => {
+    test('renderAnsi', () => {
+        expect(renderAnsi(style.red('hello'))).toEqual(
+            colorOption.red.text.set +
+            'hello' +
+            colorOption.red.text.unset
+        )
+    })
+
+    test('renderWeb', () => {
+        expect(renderWeb(style.red('hello'))).toEqual([
+            '%chello',
+            'color: red',
+        ])
+    })
+})
+
+describe('concat', () => {
+    test('no arg(s)', () => {
+        expect(concat()).toEqual([])
+    })
+
+    test('single arg(s)', () => {
+        expect(concat({ text: 'hello' })).toEqual([{ text: 'hello' }])
+        expect(concat([{ text: 'hello' }])).toEqual([{ text: 'hello' }])
+        expect(concat([{ text: 'hello' }, { text: 'world' }])).toEqual([
+            { text: 'hello' },
+            { text: 'world' },
+        ])
+    })
+
+    test('multiple arg(s)', () => {
+        expect(
+            concat({ text: 'hello' }, { text: ' ' }, { text: 'world' }),
+        ).toEqual([{ text: 'hello' }, { text: ' ' }, { text: 'world' }])
+        expect(
+            concat([{ text: 'hello' }], [{ text: ' ' }, { text: 'world' }]),
+        ).toEqual([{ text: 'hello' }, { text: ' ' }, { text: 'world' }])
+    })
+})
+
+describe('concatWs', () => {
+    test('no arg(s)', () => {
+        expect(concatWs(' ')).toEqual([])
+        expect(concatWs({ text: ' ', backgroundColor: 'red' })).toEqual([])
+    })
+
+    test('single arg(s)', () => {
+        expect(concatWs(' ', { text: 'hello' })).toEqual([{ text: 'hello' }])
+        expect(concatWs(' ', [{ text: 'hello' }])).toEqual([{ text: 'hello' }])
+        expect(concatWs(' ', [{ text: 'hello' }, { text: 'world' }])).toEqual([
+            { text: 'hello' },
+            { text: 'world' },
+        ])
+    })
+
+    test('multiple arg(s)', () => {
+        expect(concatWs(' ', { text: 'hello' }, { text: 'world' })).toEqual([
+            { text: 'hello' },
+            { text: ' ' },
+            { text: 'world' },
+        ])
+        expect(
+            concatWs(
+                { text: ' ', backgroundColor: 'red' },
+                { text: 'hello' },
+                { text: 'world' },
+            ),
+        ).toEqual([
+            { text: 'hello' },
+            { text: ' ', backgroundColor: 'red' },
+            { text: 'world' },
+        ])
+        expect(
+            concatWs(
+                ' ',
+                [{ text: 'hello' }],
+                [{ text: 'there' }, { text: 'world' }],
+            ),
+        ).toEqual([
+            { text: 'hello' },
+            { text: ' ' },
+            { text: 'there' },
+            { text: 'world' },
+        ])
+        expect(
+            concatWs(
+                ' ',
+                [{ text: 'hello' }],
+                [{ text: 'there' }],
+                [{ text: 'world' }],
+            ),
+        ).toEqual([
+            { text: 'hello' },
+            { text: ' ' },
+            { text: 'there' },
+            { text: ' ' },
+            { text: 'world' },
+        ])
+    })
+})
+
+// TODO: tests for escape sequence on render web
