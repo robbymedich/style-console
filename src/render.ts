@@ -399,7 +399,7 @@ export function renderWeb(text: StyledText | StyledText[]): string[] {
     let textColor: Color | undefined
     let backgroundColor: Color | undefined
     let fontStyles: FontStyle[] | undefined
-    const final: string[] = []
+    let final = ''
     const args: string[] = [''] // add placeholder for final string
 
     for (const part of Array.isArray(text) ? text : [text]) {
@@ -412,24 +412,23 @@ export function renderWeb(text: StyledText | StyledText[]): string[] {
             backgroundColor = part.backgroundColor
             fontStyles = part.fontStyles
 
-            final.push('%c')
+            final += '%c'
             args.push(cssStyle(textColor, backgroundColor, fontStyles))
         }
-        final.push(part.text.replace(/(%+)(c)?/g, '$1$1$2'))
+        final += part.text.replace(/(%+)(c)?/g, '$1$1$2')
     }
 
     // replace args[0] with final string
-    const styledText = final.join('')
     if (args.length === 1) {
         // escape sequences are only handled consistently if styling is used
         // args.length === 1 only happens if no styles were passed to render
         //
         // Safari requires valid CSS to be passed or else it's escape sequence
         // handling still differs from other browers
-        args[0] = `%c${styledText}`
+        args[0] = `%c${final}`
         args.push('color: currentColor')
     } else {
-        args[0] = styledText
+        args[0] = final
     }
     return args
 }
