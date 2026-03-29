@@ -365,14 +365,16 @@ export function cssStyle(
  * @returns The plain-text version of `text`.
  */
 export function stripWeb(text: string): string {
-    const stylePattern = /(?<p>^|[^%])((?<keep>(%%)+)(?<c>c)?)|(?<strip>%c)/g
+    const stylePattern =
+        /(?<p>^|[^%])((?<keep1>(%%)+)(?<c>c)?)|(?<strip>%c)(?<keep2>(%%)*)/g
     const parts: string[] = []
     let cursor = 0
 
     for (const reMatch of text.matchAll(stylePattern)) {
         parts.push(text.slice(cursor, reMatch.index))
 
-        const { p, keep, c } = reMatch.groups!
+        const { p, keep1, keep2, c } = reMatch.groups!
+        const keep = keep2 === undefined || keep2 === '' ? keep1 : keep2
         if (keep !== undefined && keep !== '') {
             parts.push(`${p ?? ''}${'%'.repeat(keep.length / 2)}${c ?? ''}`)
         }

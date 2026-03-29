@@ -598,17 +598,51 @@ describe('nested style(s)', () => {
 describe('single argument', () => {
     test('renderAnsi', () => {
         expect(renderAnsi(style.red('hello'))).toEqual(
-            colorOption.red.text.set +
-            'hello' +
-            colorOption.red.text.unset
+            colorOption.red.text.set + 'hello' + colorOption.red.text.unset,
         )
     })
 
     test('renderWeb', () => {
-        expect(renderWeb(style.red('hello'))).toEqual([
-            '%chello',
-            'color: red',
+        expect(renderWeb(style.red('hello'))).toEqual(['%chello', 'color: red'])
+    })
+})
+
+describe('web escape sequences', () => {
+    test('renderWeb', () => {
+        expect(renderWeb(style.none('%hello%world'))).toEqual([
+            '%c%%hello%%world',
+            'color: currentColor',
         ])
+
+        expect(renderWeb(style.none('%%hello%%%world'))).toEqual([
+            '%c%%%%hello%%%%%%world',
+            'color: currentColor',
+        ])
+
+        expect(renderWeb(style.none('%chello%cworld'))).toEqual([
+            '%c%%chello%%cworld',
+            'color: currentColor',
+        ])
+
+        expect(renderWeb(style.none('%%chello%%%cworld'))).toEqual([
+            '%c%%%%chello%%%%%%cworld',
+            'color: currentColor',
+        ])
+    })
+
+    test('stripWeb', () => {
+        expect(stripWeb('%c%%hello%%world')).toBe('%hello%world')
+        expect(stripWeb('%c%%%%hello%%%%%%world')).toBe('%%hello%%%world')
+        expect(stripWeb('%c%%chello%%cworld')).toBe('%chello%cworld')
+        expect(stripWeb('%c%%%%chello%%%%%%cworld')).toBe('%%chello%%%cworld')
+        expect(stripWeb('%')).toBe('%')
+        expect(stripWeb('%c')).toBe('')
+        expect(stripWeb('%%')).toBe('%')
+        expect(stripWeb('%%c')).toBe('%c')
+        expect(stripWeb('%%%')).toBe('%%')
+        expect(stripWeb('%%%c')).toBe('%')
+        expect(stripWeb('%%%%')).toBe('%%')
+        expect(stripWeb('%%%%c')).toBe('%%c')
     })
 })
 
@@ -696,5 +730,3 @@ describe('concatWs', () => {
         ])
     })
 })
-
-// TODO: tests for escape sequence on render web
