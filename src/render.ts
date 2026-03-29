@@ -97,45 +97,6 @@ export function equal(lhs?: FontStyle[], rhs?: FontStyle[]): boolean {
 /**
  * Renders styled text into a single ANSI-styled string.
  *
- * @param text - A single part to render.
- * @returns A string containing ANSI escape sequences.
- */
-function renderSingleAnsi(text: StyledText): string {
-    let setTextColor = ''
-    let unsetTextColor = ''
-    if (text.textColor !== undefined) {
-        setTextColor = colorOption[text.textColor].text.set
-        unsetTextColor = colorOption[text.textColor].text.unset
-    }
-    let setBackgroundColor = ''
-    let unsetBackgroundColor = ''
-    if (text.backgroundColor !== undefined) {
-        setBackgroundColor = colorOption[text.backgroundColor].text.set
-        unsetBackgroundColor = colorOption[text.backgroundColor].text.unset
-    }
-    let setFontStyles = ''
-    let unsetFontStyles = ''
-    if (text.fontStyles !== undefined) {
-        for (const fontStyle of text.fontStyles) {
-            setFontStyles += fontStyleOption[fontStyle].set
-            unsetFontStyles += fontStyleOption[fontStyle].unset
-        }
-    }
-
-    return (
-        setTextColor +
-        setBackgroundColor +
-        setFontStyles +
-        text.text +
-        unsetTextColor +
-        unsetBackgroundColor +
-        unsetFontStyles
-    )
-}
-
-/**
- * Renders styled text into a single ANSI-styled string.
- *
  * The renderer only emits escape sequences when the effective style changes
  * between adjacent parts, which keeps the output smaller and easier to read.
  *
@@ -144,15 +105,16 @@ function renderSingleAnsi(text: StyledText): string {
  */
 // eslint-disable-next-line complexity
 export function renderAnsi(text: StyledText | StyledText[]): string {
-    if (!Array.isArray(text)) {
-        return renderSingleAnsi(text)
-    }
+    // performance can be improved by about 40% for non-list arguments if a
+    // seprate function cleanly wraps all set and unset style strings to the
+    // text at once, not adding this in right now since performance is great
+    // as is and this is an edge case
     let textColor: Color | undefined
     let backgroundColor: Color | undefined
     let fontStyles: FontStyle[] | undefined
     let final = ''
 
-    for (const part of text) {
+    for (const part of Array.isArray(text) ? text : [text]) {
         if (part.textColor !== textColor) {
             if (textColor !== undefined) {
                 final += colorOption[textColor].text.unset
