@@ -1,6 +1,114 @@
 import type { Color, FontStyle } from './options.js'
 import type { StyledText } from './style.js'
+import type { RenderTarget, ColorSupport } from './detect.js'
 import { colorOption, fontStyleOption, colors } from './options.js'
+import { detectRenderTarget, detectColorSupport } from './detect.js'
+
+const renderTarget: RenderTarget = detectRenderTarget()
+
+const colorSupport: ColorSupport = detectColorSupport()
+
+/** CSS Color(s), can be used to change styling with setCssColors */
+export const colorThemes: {
+    default: Record<Color, string>
+    chromeLight: Record<Color, string>
+    chromeDark: Record<Color, string>
+} = {
+    default: {
+        black: '#000000',
+        white: '#E5E5E5',
+        grey: '#777777',
+        greyBright: '#B7B7B7',
+        blue: '#0A3CD2',
+        blueBright: '#0A78FF',
+        cyan: '#1E9BA5',
+        cyanBright: '#1EC8D2',
+        green: '#239B32',
+        greenBright: '#23D232',
+        magenta: '#9B46A5',
+        magentaBright: '#C846D2',
+        red: '#9B2319',
+        redBright: '#D22319',
+        yellow: '#9B9100',
+        yellowBright: '#D2C800',
+    },
+    chromeLight: {
+        black: '#000000',
+        white: '#FFFFFF',
+        grey: '#555555',
+        greyBright: '#AAAAAA',
+        blue: '#0000AA',
+        blueBright: '#5555FF',
+        cyan: '#00AAAA',
+        cyanBright: '#55FFFF',
+        green: '#00AA00',
+        greenBright: '#55FF55',
+        magenta: '#AA00AA',
+        magentaBright: '#FF55FF',
+        red: '#AA0000',
+        redBright: '#FF5555',
+        yellow: '#AA5500',
+        yellowBright: '#FFFF55',
+    },
+    chromeDark: {
+        black: '#000000',
+        white: '#FFFFFF',
+        grey: '#898989',
+        greyBright: '#cfd0d0',
+        blue: '#2774f0',
+        blueBright: '#669df6',
+        cyan: '#12b5cb',
+        cyanBright: '#84f0ff',
+        green: '#01c800',
+        greenBright: '#9BF5B1',
+        magenta: '#a142f4',
+        magentaBright: '#d670d6',
+        red: '#ed4e4c',
+        redBright: '#f28b82',
+        yellow: '#d2c057',
+        yellowBright: '#ddfb55',
+    },
+}
+
+/** Default ANSI color theme used when rendering with truecolor terminals. */
+const ansiColorTheme: Record<Color, string> = colorThemes.default
+
+/** Default CSS color theme used when rendering for browser consoles. */
+const cssColorTheme: Record<Color, string> = colorThemes.default
+
+/**
+ * Overrides one or more colors in the ANSI truecolor terminal theme.
+ *
+ * @param options - Partial or full map of color names to CSS color values.
+ */
+export function setAnsiColors(options: Record<Color, string>): void {
+    for (const [colorName, colorValue] of Object.entries(options)) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        if (!colors.includes(colorName as Color)) {
+            throw new Error(`invalid color '${colorName}'`)
+        }
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        ansiColorTheme[colorName as Color] = colorValue
+    }
+}
+
+/**
+ * Overrides one or more colors in the browser-console CSS theme.
+ *
+ * @param options - Partial or full map of color names to CSS color values.
+ */
+export function setCssColors(options: Record<Color, string>): void {
+    for (const [colorName, colorValue] of Object.entries(options)) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        if (!colors.includes(colorName as Color)) {
+            throw new Error(`invalid color '${colorName}'`)
+        }
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        cssColorTheme[colorName as Color] = colorValue
+    }
+}
+
+// TODO: Make set colors funciton generic
 
 /**
  * Merge `StyledText` arguments into a single flattened list.
@@ -57,17 +165,6 @@ export function concatWs(
 }
 
 /**
- * Removes ANSI escape sequences from a string.
- *
- * @param text - Text that may contain ANSI styling sequences.
- * @returns The plain-text version of `text`.
- */
-export function stripAnsi(text: string): string {
-    // eslint-disable-next-line no-control-regex
-    return text.replaceAll(/\x1b\[\d+m/gu, '')
-}
-
-/**
  * Checks if two font style lists are equal to one another,
  * `lhs === rhs` by value.
  *
@@ -87,6 +184,17 @@ export function equal(lhs?: FontStyle[], rhs?: FontStyle[]): boolean {
         }
     }
     return true
+}
+
+/**
+ * Removes ANSI escape sequences from a string.
+ *
+ * @param text - Text that may contain ANSI styling sequences.
+ * @returns The plain-text version of `text`.
+ */
+export function stripAnsi(text: string): string {
+    // eslint-disable-next-line no-control-regex
+    return text.replaceAll(/\x1b\[\d+m/gu, '')
 }
 
 /**
@@ -172,87 +280,6 @@ export function renderAnsi(text: StyledText | StyledText[]): string {
         }
     }
     return final
-}
-
-/** CSS Color(s), can be used to change styling with setCssColors */
-export const cssColorThemes: {
-    default: Record<Color, string>
-    chromeLight: Record<Color, string>
-    chromeDark: Record<Color, string>
-} = {
-    default: {
-        black: '#000000',
-        white: '#E5E5E5',
-        grey: '#777777',
-        greyBright: '#B7B7B7',
-        blue: '#0A3CD2',
-        blueBright: '#0A78FF',
-        cyan: '#1E9BA5',
-        cyanBright: '#1EC8D2',
-        green: '#239B32',
-        greenBright: '#23D232',
-        magenta: '#9B46A5',
-        magentaBright: '#C846D2',
-        red: '#9B2319',
-        redBright: '#D22319',
-        yellow: '#9B9100',
-        yellowBright: '#D2C800',
-    },
-    chromeLight: {
-        black: '#000000',
-        white: '#FFFFFF',
-        grey: '#555555',
-        greyBright: '#AAAAAA',
-        blue: '#0000AA',
-        blueBright: '#5555FF',
-        cyan: '#00AAAA',
-        cyanBright: '#55FFFF',
-        green: '#00AA00',
-        greenBright: '#55FF55',
-        magenta: '#AA00AA',
-        magentaBright: '#FF55FF',
-        red: '#AA0000',
-        redBright: '#FF5555',
-        yellow: '#AA5500',
-        yellowBright: '#FFFF55',
-    },
-    chromeDark: {
-        black: '#000000',
-        white: '#FFFFFF',
-        grey: '#898989',
-        greyBright: '#cfd0d0',
-        blue: '#2774f0',
-        blueBright: '#669df6',
-        cyan: '#12b5cb',
-        cyanBright: '#84f0ff',
-        green: '#01c800',
-        greenBright: '#9BF5B1',
-        magenta: '#a142f4',
-        magentaBright: '#d670d6',
-        red: '#ed4e4c',
-        redBright: '#f28b82',
-        yellow: '#d2c057',
-        yellowBright: '#ddfb55',
-    },
-}
-
-/** Default CSS color theme used when rendering for browser consoles. */
-const cssColorTheme: Record<Color, string> = cssColorThemes.default
-
-/**
- * Overrides one or more colors in the browser-console CSS theme.
- *
- * @param options - Partial or full map of color names to CSS color values.
- */
-export function setCssColors(options: Record<Color, string>): void {
-    for (const [colorName, colorValue] of Object.entries(options)) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-        if (!colors.includes(colorName as Color)) {
-            throw new Error(`invalid color '${colorName}'`)
-        }
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-        cssColorTheme[colorName as Color] = colorValue
-    }
 }
 
 /**
@@ -431,6 +458,8 @@ export function stripWeb(text: string): string {
     }
     return parts.join('')
 }
+// TODO: make sure other substituitions are properly escaped not just 'c'
+// https://developer.mozilla.org/en-US/docs/Web/API/console#using_string_substitutions
 
 /**
  * Renders styled text into the argument list expected by the browser's
@@ -480,4 +509,23 @@ export function renderWeb(text: StyledText | StyledText[]): string[] {
     return args
 }
 
-// TODO: create detect and logging options
+type Logger = (...args: unknown[]) => void
+
+const consoleLog: Logger = (function () {
+    const globalConsole = (globalThis as { console?: unknown }).console
+    const maybeLog = (globalConsole as { log?: Logger }).log?.bind(
+        globalConsole,
+    )
+    if (maybeLog === undefined) {
+        throw new Error('global console.log object not found')
+    }
+    return maybeLog
+})()
+
+export function log(...text: (StyledText | StyledText[])[]): void {
+    if ('ANSI' === 'ANSI') {
+        consoleLog(renderAnsi(concat(...text)))
+    } else {
+        consoleLog(...renderWeb(concat(...text)))
+    }
+}

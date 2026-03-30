@@ -13,17 +13,20 @@ export type {
     StylistBuilder,
     StylistInitializer,
 } from './style.js'
+export type { RenderTarget, ColorSupport } from './detect.js'
 export { indent, dedent } from './spacing.js'
 export { colors, backgroundColors, fontStyles } from './options.js'
 export { style } from './style.js'
 export {
+    colorThemes,
+    setAnsiColors,
+    setCssColors,
     concat,
     concatWs,
     stripAnsi,
     renderAnsi,
+    cssStyle,
     stripWeb,
     renderWeb,
-    cssStyle,
-    setCssColors,
-    cssColorThemes,
+    log,
 } from './render.js'
