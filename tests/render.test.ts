@@ -52,10 +52,10 @@ describe('cssStyle', () => {
                 'blink',
             ]),
         ).toEqual(
-            'font-weight: bold; ' +
-                'font-style: italic; ' +
-                'padding: 1px; ' +
-                'border: 1px solid currentColor',
+            'font-weight: bold;' +
+                'font-style: italic;' +
+                'padding: 1px;' +
+                'border: 1px solid currentColor;',
         )
         expect(
             cssStyle(undefined, undefined, [
@@ -65,25 +65,25 @@ describe('cssStyle', () => {
                 'bold',
             ]),
         ).toEqual(
-            'font-style: italic; ' +
-                'padding: 1px; ' +
-                'border: 1px solid currentColor; ' +
-                'font-weight: bold',
+            'font-style: italic;' +
+                'padding: 1px;' +
+                'border: 1px solid currentColor;' +
+                'font-weight: bold;',
         )
     })
 
     test('push, with a color', () => {
         expect(cssStyle('red', undefined, ['bold', 'italic'])).toEqual(
-            'font-weight: bold; font-style: italic; color: red',
+            'font-weight: bold;font-style: italic;color: red;',
         )
     })
 
     test('text-decoration', () => {
         expect(cssStyle(undefined, undefined, ['underline'])).toEqual(
-            'text-decoration: underline',
+            'text-decoration: underline;',
         )
         expect(cssStyle(undefined, undefined, ['strikethrough'])).toEqual(
-            'text-decoration: line-through',
+            'text-decoration: line-through;',
         )
         expect(
             cssStyle(undefined, undefined, [
@@ -91,74 +91,74 @@ describe('cssStyle', () => {
                 'strikethrough',
                 'overlined',
             ]),
-        ).toEqual('text-decoration: underline line-through overline')
+        ).toEqual('text-decoration: underline line-through overline;')
         expect(
             cssStyle(undefined, undefined, [
                 'doubleunderline',
                 'strikethrough',
                 'overlined',
             ]),
-        ).toEqual('text-decoration: underline line-through overline')
+        ).toEqual('text-decoration: underline line-through overline;')
         expect(
             cssStyle(undefined, undefined, ['doubleunderline', 'italic']),
-        ).toEqual('font-style: italic; text-decoration: underline double')
+        ).toEqual('font-style: italic;text-decoration: underline double;')
     })
 
     test('text and background color', () => {
-        expect(cssStyle('blue', 'red')).toEqual('color: blue; background: red')
+        expect(cssStyle('blue', 'red')).toEqual('color: blue;background: red;')
         expect(cssStyle('red', undefined, ['dim'])).toEqual(
-            'color: rgb(from red r g b / 0.5)',
+            'color: rgb(from red r g b / 0.5);',
         )
         expect(cssStyle(undefined, 'red', ['dim'])).toEqual(
-            'color: rgb(from currentColor r g b / 0.5); ' +
-                'background: rgb(from red r g b / 0.5)',
+            'color: rgb(from currentColor r g b / 0.5);' +
+                'background: rgb(from red r g b / 0.5);',
         )
         expect(cssStyle('red', 'blue', ['dim'])).toEqual(
-            'color: rgb(from red r g b / 0.5); ' +
-                'background: rgb(from blue r g b / 0.5)',
+            'color: rgb(from red r g b / 0.5);' +
+                'background: rgb(from blue r g b / 0.5);',
         )
         expect(cssStyle('red', 'blue', ['inverse'])).toEqual(
-            'color: blue; background: red',
+            'color: blue;background: red;',
         )
         expect(cssStyle('red', undefined, ['inverse'])).toEqual(
-            'color: rgb(from red calc(255 - r) calc(255 - g) calc(255 - b)); ' +
-                'background: red',
+            'color: rgb(from red calc(255 - r) calc(255 - g) calc(255 - b));' +
+                'background: red;',
         )
         expect(cssStyle(undefined, 'red', ['inverse'])).toEqual(
-            'color: red; ' +
-                'background: rgb(from currentColor calc(255 - r) calc(255 - g) calc(255 - b))',
+            'color: red;' +
+                'background: rgb(from currentColor calc(255 - r) calc(255 - g) calc(255 - b));',
         )
         expect(cssStyle(undefined, undefined, ['inverse'])).toEqual(
-            'color: rgb(from currentColor calc(255 - r) calc(255 - g) calc(255 - b)); ' +
-                'background: rgb(from currentColor calc(255 - r) calc(255 - g) calc(255 - b))',
+            'color: rgb(from currentColor calc(255 - r) calc(255 - g) calc(255 - b));' +
+                'background: rgb(from currentColor calc(255 - r) calc(255 - g) calc(255 - b));',
         )
         expect(cssStyle(undefined, undefined, ['inverse', 'dim'])).toEqual(
-            'color: rgb(from currentColor calc(255 - r) calc(255 - g) calc(255 - b) / 0.5); ' +
-                'background: rgb(from currentColor calc(255 - r) calc(255 - g) calc(255 - b) / 0.5)',
+            'color: rgb(from currentColor calc(255 - r) calc(255 - g) calc(255 - b) / 0.5);' +
+                'background: rgb(from currentColor calc(255 - r) calc(255 - g) calc(255 - b) / 0.5);',
         )
         expect(cssStyle('red', undefined, ['inverse', 'dim'])).toEqual(
-            'color: rgb(from red calc(255 - r) calc(255 - g) calc(255 - b) / 0.5); ' +
-                'background: rgb(from red r g b / 0.5)',
+            'color: rgb(from red calc(255 - r) calc(255 - g) calc(255 - b) / 0.5);' +
+                'background: rgb(from red r g b / 0.5);',
         )
         expect(cssStyle(undefined, 'red', ['inverse', 'dim'])).toEqual(
-            'color: rgb(from red r g b / 0.5); ' +
-                'background: rgb(from currentColor calc(255 - r) calc(255 - g) calc(255 - b) / 0.5)',
+            'color: rgb(from red r g b / 0.5);' +
+                'background: rgb(from currentColor calc(255 - r) calc(255 - g) calc(255 - b) / 0.5);',
         )
         expect(cssStyle('blue', 'red', ['inverse', 'dim'])).toEqual(
-            'color: rgb(from red r g b / 0.5); ' +
-                'background: rgb(from blue r g b / 0.5)',
+            'color: rgb(from red r g b / 0.5);' +
+                'background: rgb(from blue r g b / 0.5);',
         )
         expect(cssStyle('red', undefined, ['dim', 'hidden'])).toEqual(
-            'color: rgb(from currentColor r g b / 0)',
+            'color: rgb(from currentColor r g b / 0);',
         )
         expect(cssStyle('red', undefined, ['hidden', 'dim'])).toEqual(
-            'color: rgb(from red r g b / 0.5)',
+            'color: rgb(from red r g b / 0.5);',
         )
         expect(cssStyle('red', 'blue', ['inverse', 'hidden'])).toEqual(
-            'color: rgb(from currentColor r g b / 0); background: red',
+            'color: rgb(from currentColor r g b / 0);background: red;',
         )
         expect(cssStyle('red', 'blue', ['hidden', 'inverse'])).toEqual(
-            'color: blue; background: red',
+            'color: blue;background: red;',
         )
     })
 })
@@ -210,14 +210,14 @@ describe('no style', () => {
     })
 
     test('renderWeb', () => {
-        expect(renderWebWrapped([])).toEqual(['%c', 'color: currentColor'])
+        expect(renderWebWrapped([])).toEqual(['%c', 'color: currentColor;'])
         expect(renderWebWrapped([{ text: '' }])).toEqual([
             '%c',
-            'color: currentColor',
+            'color: currentColor;',
         ])
         expect(renderWebWrapped([{ text: 'hello world' }])).toEqual([
             '%chello world',
-            'color: currentColor',
+            'color: currentColor;',
         ])
         expect(
             renderWebWrapped([
@@ -225,7 +225,7 @@ describe('no style', () => {
                 { text: ' ' },
                 { text: 'world' },
             ]),
-        ).toEqual(['%chello world', 'color: currentColor'])
+        ).toEqual(['%chello world', 'color: currentColor;'])
     })
 })
 
@@ -274,7 +274,7 @@ describe('color text', () => {
         for (const color of colors) {
             expect(
                 renderWebWrapped([{ text: color, textColor: color }]),
-            ).toEqual([`%c${color}`, `color: ${color}`])
+            ).toEqual([`%c${color}`, `color: ${color};`])
         }
 
         expect(
@@ -283,7 +283,7 @@ describe('color text', () => {
                 { text: ' ', textColor: 'red' },
                 { text: 'world', textColor: 'red' },
             ]),
-        ).toEqual(['%chello world', 'color: red'])
+        ).toEqual(['%chello world', 'color: red;'])
 
         expect(
             renderWebWrapped([
@@ -291,7 +291,7 @@ describe('color text', () => {
                 { text: ' ' },
                 { text: 'world', textColor: 'red' },
             ]),
-        ).toEqual(['%chello%c %cworld', 'color: red', '', 'color: red'])
+        ).toEqual(['%chello%c %cworld', 'color: red;', '', 'color: red;'])
     })
 })
 
@@ -340,7 +340,7 @@ describe('background color', () => {
         for (const color of colors) {
             expect(
                 renderWebWrapped([{ text: color, backgroundColor: color }]),
-            ).toEqual([`%c${color}`, `background: ${color}`])
+            ).toEqual([`%c${color}`, `background: ${color};`])
         }
 
         expect(
@@ -349,7 +349,7 @@ describe('background color', () => {
                 { text: ' ', backgroundColor: 'red' },
                 { text: 'world', backgroundColor: 'red' },
             ]),
-        ).toEqual(['%chello world', 'background: red'])
+        ).toEqual(['%chello world', 'background: red;'])
 
         expect(
             renderWebWrapped([
@@ -359,9 +359,9 @@ describe('background color', () => {
             ]),
         ).toEqual([
             '%chello%c %cworld',
-            'background: red',
+            'background: red;',
             '',
-            'background: red',
+            'background: red;',
         ])
     })
 })
@@ -428,7 +428,7 @@ describe('font styled', () => {
                 { text: ' ', fontStyles: ['bold'] },
                 { text: 'world', fontStyles: ['bold'] },
             ]),
-        ).toEqual(['%chello world', 'font-weight: bold'])
+        ).toEqual(['%chello world', 'font-weight: bold;'])
 
         expect(
             renderWebWrapped([
@@ -438,9 +438,9 @@ describe('font styled', () => {
             ]),
         ).toEqual([
             '%chello%c %cworld',
-            'font-weight: bold',
+            'font-weight: bold;',
             '',
-            'font-weight: bold',
+            'font-weight: bold;',
         ])
     })
 })
@@ -475,9 +475,9 @@ describe('multiple font styles', () => {
             ]),
         ).toEqual([
             '%chello%c %cworld',
-            'font-weight: bold',
-            'font-weight: bold; text-decoration: line-through',
-            'font-weight: bold; font-style: italic',
+            'font-weight: bold;',
+            'font-weight: bold;text-decoration: line-through;',
+            'font-weight: bold;font-style: italic;',
         ])
     })
 })
@@ -534,9 +534,9 @@ describe('full styled text', () => {
             ]),
         ).toEqual([
             '%chello%c %cworld',
-            'font-weight: bold; color: blue',
-            'font-weight: bold; color: blue; background: red; text-decoration: line-through',
-            'font-weight: bold; font-style: italic; background: red',
+            'font-weight: bold;color: blue;',
+            'font-weight: bold;color: blue;background: red;text-decoration: line-through;',
+            'font-weight: bold;font-style: italic;background: red;',
         ])
     })
 })
@@ -562,9 +562,9 @@ describe('nested style(s)', () => {
         )
         expect(renderWebWrapped(text)).toEqual([
             '%cthis is bold, %cthis is dimmed, %cand this is bold again.',
-            'font-weight: bold',
-            'color: rgb(from currentColor r g b / 0.5)',
-            'font-weight: bold',
+            'font-weight: bold;',
+            'color: rgb(from currentColor r g b / 0.5);',
+            'font-weight: bold;',
         ])
     })
 
@@ -588,9 +588,9 @@ describe('nested style(s)', () => {
         )
         expect(renderWebWrapped(text)).toEqual([
             '%csingle%c double %csingle',
-            'text-decoration: underline',
-            'text-decoration: underline double',
-            'text-decoration: underline',
+            'text-decoration: underline;',
+            'text-decoration: underline double;',
+            'text-decoration: underline;',
         ])
     })
 })
@@ -603,7 +603,7 @@ describe('single argument', () => {
     })
 
     test('renderWeb', () => {
-        expect(renderWeb(style.red('hello'))).toEqual(['%chello', 'color: red'])
+        expect(renderWeb(style.red('hello'))).toEqual(['%chello', 'color: red;'])
     })
 })
 
@@ -611,22 +611,22 @@ describe('web escape sequences', () => {
     test('renderWeb', () => {
         expect(renderWeb(style.none('%hello%world'))).toEqual([
             '%c%%hello%%world',
-            'color: currentColor',
+            'color: currentColor;',
         ])
 
         expect(renderWeb(style.none('%%hello%%%world'))).toEqual([
             '%c%%%%hello%%%%%%world',
-            'color: currentColor',
+            'color: currentColor;',
         ])
 
         expect(renderWeb(style.none('%chello%cworld'))).toEqual([
             '%c%%chello%%cworld',
-            'color: currentColor',
+            'color: currentColor;',
         ])
 
         expect(renderWeb(style.none('%%chello%%%cworld'))).toEqual([
             '%c%%%%chello%%%%%%cworld',
-            'color: currentColor',
+            'color: currentColor;',
         ])
     })
 

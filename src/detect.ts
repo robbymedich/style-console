@@ -6,9 +6,9 @@ export type ColorSupport =
     | 'truecolor' // 16M colors with direct rgb support
 
 export function detectRenderTarget(): RenderTarget {
-    throw new Error('ah')
+    return 'ANSI'
 }
 
 export function detectColorSupport(): ColorSupport {
-    throw new Error('ah')
+    return '256color'
 }

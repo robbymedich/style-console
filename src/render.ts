@@ -328,14 +328,15 @@ export function cssStyle(
     let dim = false
     let hidden = false
     let inverse = false
+    const currentColor =
+        textColor === undefined ? 'currentColor' : cssColorTheme[textColor]
 
-    const cssStyles = []
-
+    let cssStyles = ''
     for (const fontStyle of fontStyles ?? []) {
         if (fontStyle === 'bold') {
-            cssStyles.push('font-weight: bold')
+            cssStyles += 'font-weight: bold;'
         } else if (fontStyle === 'italic') {
-            cssStyles.push('font-style: italic')
+            cssStyles += 'font-style: italic;'
         } else if (fontStyle === 'underline') {
             underline = true
         } else if (fontStyle === 'strikethrough') {
@@ -353,18 +354,17 @@ export function cssStyle(
             inverse = true
             hidden = false
         } else if (fontStyle === 'framed') {
-            cssStyles.push('padding: 1px; border: 1px solid currentColor')
+            cssStyles += 'padding: 1px;border: 1px solid currentColor;'
         } else if (fontStyle !== 'blink') {
-            // css not supported for blink
+            // css not supported for blink -> simply skip styling if blink
+            // otherwise throw an error
             throw new Error(`'${fontStyle}' is not mapped to a CSS style`)
         }
     }
 
     // set 'color' property
-    const currentColor =
-        textColor === undefined ? 'currentColor' : cssColorTheme[textColor]
     if (hidden) {
-        cssStyles.push('color: rgb(from currentColor r g b / 0)')
+        cssStyles += 'color: rgb(from currentColor r g b / 0);'
     } else if (inverse) {
         const invertColor =
             // eslint-disable-next-line no-nested-ternary
@@ -373,11 +373,11 @@ export function cssStyle(
                 : dim
                   ? dimColor(cssColorTheme[backgroundColor])
                   : cssColorTheme[backgroundColor]
-        cssStyles.push(`color: ${invertColor}`)
+        cssStyles += `color: ${invertColor};`
     } else if (dim) {
-        cssStyles.push(`color: ${dimColor(currentColor)}`)
+        cssStyles += `color: ${dimColor(currentColor)};`
     } else if (textColor !== undefined) {
-        cssStyles.push(`color: ${currentColor}`)
+        cssStyles += `color: ${currentColor};`
     }
 
     // set 'background' property
@@ -389,13 +389,13 @@ export function cssStyle(
                 : dim
                   ? dimColor(cssColorTheme[textColor])
                   : cssColorTheme[textColor]
-        cssStyles.push(`background: ${invertColor}`)
+        cssStyles += `background: ${invertColor};`
     } else if (backgroundColor !== undefined) {
         const currentBackground = cssColorTheme[backgroundColor]
         if (dim) {
-            cssStyles.push(`background: ${dimColor(currentBackground)}`)
+            cssStyles += `background: ${dimColor(currentBackground)};`
         } else {
-            cssStyles.push(`background: ${currentBackground}`)
+            cssStyles += `background: ${currentBackground};`
         }
     }
 
@@ -410,23 +410,23 @@ export function cssStyle(
         }
     }
     if (underline || strikethrough || doubleunderline || overlined) {
-        const textDecoration = []
+        let textDecoration = 'text-decoration:'
         if (underline) {
-            textDecoration.push('underline')
+            textDecoration += ' underline'
         }
         if (strikethrough) {
-            textDecoration.push('line-through')
+            textDecoration += ' line-through'
         }
         if (overlined) {
-            textDecoration.push('overline')
+            textDecoration += ' overline'
         }
         if (doubleunderline) {
-            textDecoration.push('underline double') // must be last to push
+            textDecoration += ' underline double' // must be last to add
         }
-        cssStyles.push(`text-decoration: ${textDecoration.join(' ')}`)
+        cssStyles += textDecoration + ';'
     }
 
-    return cssStyles.join('; ')
+    return cssStyles
 }
 
 /**
@@ -491,6 +491,7 @@ export function renderWeb(text: StyledText | StyledText[]): string[] {
             final += '%c'
             args.push(cssStyle(textColor, backgroundColor, fontStyles))
         }
+        // TODO: replace needs to handle other style strings
         final += part.text.replace(/(%+)(c)?/g, '$1$1$2')
     }
 
@@ -502,7 +503,7 @@ export function renderWeb(text: StyledText | StyledText[]): string[] {
         // Safari requires valid CSS to be passed or else it's escape sequence
         // handling still differs from other browers
         args[0] = `%c${final}`
-        args.push('color: currentColor')
+        args.push('color: currentColor;')
     } else {
         args[0] = final
     }
