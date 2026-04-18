@@ -198,6 +198,61 @@ export function stripAnsi(text: string): string {
 }
 
 /**
+ * Core render logic for an ANSI-styled string. Mutates output as each part is
+ * processed in the larger `renderAnsi` function.
+ */
+function renderAnsiInner(output: StyledText, part: StyledText): void {
+    if (part.textColor !== output.textColor) {
+        if (output.textColor !== undefined) {
+            output.text += colorOption[output.textColor].text.unset
+        }
+        output.textColor = part.textColor
+        if (output.textColor !== undefined) {
+            output.text += colorOption[output.textColor].text.set
+        }
+    }
+    if (part.backgroundColor !== output.backgroundColor) {
+        if (output.backgroundColor !== undefined) {
+            output.text += colorOption[output.backgroundColor].background.unset
+        }
+        output.backgroundColor = part.backgroundColor
+        if (output.backgroundColor !== undefined) {
+            output.text += colorOption[output.backgroundColor].background.set
+        }
+    }
+    if (!equal(part.fontStyles, output.fontStyles)) {
+        const oldStyles = output.fontStyles
+        output.fontStyles = part.fontStyles
+
+        const fontStyleFlags: Partial<Record<FontStyle, boolean>> = {}
+        if (output.fontStyles !== undefined) {
+            for (const fontStyle of output.fontStyles) {
+                fontStyleFlags[fontStyle] = true
+            }
+        }
+        if (oldStyles !== undefined) {
+            for (const fontStyle of oldStyles) {
+                // eslint-disable-next-line max-depth
+                if (fontStyleFlags[fontStyle] === true) {
+                    fontStyleFlags[fontStyle] = false
+                } else {
+                    output.text += fontStyleOption[fontStyle].unset
+                }
+            }
+        }
+        if (output.fontStyles !== undefined) {
+            for (const fontStyle of output.fontStyles) {
+                // eslint-disable-next-line max-depth
+                if (fontStyleFlags[fontStyle] === true) {
+                    output.text += fontStyleOption[fontStyle as FontStyle].set
+                }
+            }
+        }
+    }
+    output.text += part.text
+}
+
+/**
  * Renders styled text into a single ANSI-styled string.
  *
  * The renderer only emits escape sequences when the effective style changes
@@ -207,79 +262,39 @@ export function stripAnsi(text: string): string {
  * @returns A string containing ANSI escape sequences.
  */
 // eslint-disable-next-line complexity
-export function renderAnsi(text: StyledText | StyledText[]): string {
+export function renderAnsi(...text: (StyledText | StyledText[])[]): string {
     // performance can be improved by about 40% for non-list arguments if a
     // seprate function cleanly wraps all set and unset style strings to the
     // text at once, not adding this in right now since performance is great
     // as is and this is an edge case
-    let textColor: Color | undefined
-    let backgroundColor: Color | undefined
-    let fontStyles: FontStyle[] | undefined
-    let final = ''
+    if (text.length === 0) {
+        return ''
+    }
+    const output: StyledText = { text: '' }
 
-    for (const part of Array.isArray(text) ? text : [text]) {
-        if (part.textColor !== textColor) {
-            if (textColor !== undefined) {
-                final += colorOption[textColor].text.unset
+    for (const part of text) {
+        if (Array.isArray(part)) {
+            for (const subPart of part) {
+                renderAnsiInner(output, subPart)
             }
-            textColor = part.textColor
-            if (textColor !== undefined) {
-                final += colorOption[textColor].text.set
-            }
+        } else {
+            renderAnsiInner(output, part)
         }
-        if (part.backgroundColor !== backgroundColor) {
-            if (backgroundColor !== undefined) {
-                final += colorOption[backgroundColor].background.unset
-            }
-            backgroundColor = part.backgroundColor
-            if (backgroundColor !== undefined) {
-                final += colorOption[backgroundColor].background.set
-            }
-        }
-        if (!equal(part.fontStyles, fontStyles)) {
-            const oldStyles = fontStyles
-            fontStyles = part.fontStyles
-
-            const fontStyleFlags: Partial<Record<FontStyle, boolean>> = {}
-            if (fontStyles !== undefined) {
-                for (const fontStyle of fontStyles) {
-                    fontStyleFlags[fontStyle] = true
-                }
-            }
-            if (oldStyles !== undefined) {
-                for (const fontStyle of oldStyles) {
-                    // eslint-disable-next-line max-depth
-                    if (fontStyleFlags[fontStyle] === true) {
-                        fontStyleFlags[fontStyle] = false
-                    } else {
-                        final += fontStyleOption[fontStyle].unset
-                    }
-                }
-            }
-            if (fontStyles !== undefined) {
-                for (const fontStyle of fontStyles) {
-                    // eslint-disable-next-line max-depth
-                    if (fontStyleFlags[fontStyle] === true) {
-                        final += fontStyleOption[fontStyle as FontStyle].set
-                    }
-                }
-            }
-        }
-        final += part.text
     }
 
-    if (textColor !== undefined) {
-        final += colorOption[textColor].text.unset
+    if (output.textColor !== undefined) {
+        output.text += colorOption[output.textColor].text.unset
     }
-    if (backgroundColor !== undefined) {
-        final += colorOption[backgroundColor].background.unset
+    if (output.backgroundColor !== undefined) {
+        output.text += colorOption[output.backgroundColor].background.unset
     }
-    if (fontStyles !== undefined) {
-        for (const fontStyle of fontStyles) {
-            final += fontStyleOption[fontStyle].unset
+    if (output.fontStyles !== undefined) {
+        for (const fontStyle of output.fontStyles) {
+            output.text += fontStyleOption[fontStyle].unset
         }
     }
-    return final
+
+    return output.text
 }
 
 /**
