@@ -477,6 +477,37 @@ export function stripWeb(text: string): string {
 // https://developer.mozilla.org/en-US/docs/Web/API/console#using_string_substitutions
 
 /**
+ * Core render logic for a Web-styled string. Mutates output as each part is
+ * processed in the larger `renderWeb` function.
+ */
+function renderWebInner(
+    output: StyledText,
+    args: string[],
+    part: StyledText,
+): void {
+    if (
+        part.textColor !== output.textColor ||
+        part.backgroundColor !== output.backgroundColor ||
+        !equal(part.fontStyles, output.fontStyles)
+    ) {
+        output.textColor = part.textColor
+        output.backgroundColor = part.backgroundColor
+        output.fontStyles = part.fontStyles
+
+        output.text += '%c'
+        args.push(
+            cssStyle(
+                output.textColor,
+                output.backgroundColor,
+                output.fontStyles,
+            ),
+        )
+    }
+    // TODO: replace needs to handle other style strings
+    output.text += part.text.replace(/(%+)(c)?/g, '$1$1$2')
+}
+
+/**
  * Renders styled text into the argument list expected by the browser's
  * `console.log`.
  *
@@ -486,28 +517,18 @@ export function stripWeb(text: string): string {
  * @param text - A single part or list of parts to render.
  * @returns Arguments ready to spread into `console.log(...renderWeb(text))`.
  */
-export function renderWeb(text: StyledText | StyledText[]): string[] {
-    let textColor: Color | undefined
-    let backgroundColor: Color | undefined
-    let fontStyles: FontStyle[] | undefined
-    let final = ''
+export function renderWeb(...text: (StyledText | StyledText[])[]): string[] {
+    const output: StyledText = { text: '' }
     const args: string[] = [''] // add placeholder for final string
 
-    for (const part of Array.isArray(text) ? text : [text]) {
-        if (
-            part.textColor !== textColor ||
-            part.backgroundColor !== backgroundColor ||
-            !equal(part.fontStyles, fontStyles)
-        ) {
-            textColor = part.textColor
-            backgroundColor = part.backgroundColor
-            fontStyles = part.fontStyles
-
-            final += '%c'
-            args.push(cssStyle(textColor, backgroundColor, fontStyles))
+    for (const part of text) {
+        if (Array.isArray(part)) {
+            for (const subPart of part) {
+                renderWebInner(output, args, subPart)
+            }
+        } else {
+            renderWebInner(output, args, part)
         }
-        // TODO: replace needs to handle other style strings
-        final += part.text.replace(/(%+)(c)?/g, '$1$1$2')
     }
 
     // replace args[0] with final string
@@ -517,10 +538,10 @@ export function renderWeb(text: StyledText | StyledText[]): string[] {
         //
         // Safari requires valid CSS to be passed or else it's escape sequence
         // handling still differs from other browers
-        args[0] = `%c${final}`
+        args[0] = `%c${output.text}`
         args.push('color: currentColor;')
     } else {
-        args[0] = final
+        args[0] = output.text
     }
     return args
 }
@@ -540,8 +561,8 @@ const consoleLog: Logger = (function () {
 
 export function log(...text: (StyledText | StyledText[])[]): void {
     if ('ANSI' === 'ANSI') {
-        consoleLog(renderAnsi(concat(...text)))
+        consoleLog(renderAnsi(...text))
     } else {
-        consoleLog(...renderWeb(concat(...text)))
+        consoleLog(...renderWeb(...text))
     }
 }

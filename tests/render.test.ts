@@ -603,7 +603,10 @@ describe('single argument', () => {
     })
 
     test('renderWeb', () => {
-        expect(renderWeb(style.red('hello'))).toEqual(['%chello', 'color: red;'])
+        expect(renderWeb(style.red('hello'))).toEqual([
+            '%chello',
+            'color: red;',
+        ])
     })
 })
 
