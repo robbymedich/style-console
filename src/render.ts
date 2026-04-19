@@ -4,9 +4,8 @@ import type { RenderTarget, ColorSupport } from './detect.js'
 import { colorOption, fontStyleOption, colors } from './options.js'
 import { detectRenderTarget, detectColorSupport } from './detect.js'
 
-const renderTarget: RenderTarget = detectRenderTarget()
-
-const colorSupport: ColorSupport = detectColorSupport()
+const RENDER_TARGET: RenderTarget = detectRenderTarget()
+const COLOR_SUPPORT: ColorSupport = detectColorSupport()
 
 /** CSS Color(s), can be used to change styling with setCssColors */
 export const colorThemes: {
@@ -71,10 +70,10 @@ export const colorThemes: {
 }
 
 /** Default ANSI color theme used when rendering with truecolor terminals. */
-const ansiColorTheme: Record<Color, string> = colorThemes.default
+const ANSI_COLOR_THEME: Record<Color, string> = colorThemes.default
 
 /** Default CSS color theme used when rendering for browser consoles. */
-const cssColorTheme: Record<Color, string> = colorThemes.default
+const CSS_COLOR_THEME: Record<Color, string> = colorThemes.default
 
 /**
  * Overrides one or more colors in the ANSI truecolor terminal theme.
@@ -88,7 +87,7 @@ export function setAnsiColors(options: Record<Color, string>): void {
             throw new Error(`invalid color '${colorName}'`)
         }
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-        ansiColorTheme[colorName as Color] = colorValue
+        ANSI_COLOR_THEME[colorName as Color] = colorValue
     }
 }
 
@@ -104,7 +103,7 @@ export function setCssColors(options: Record<Color, string>): void {
             throw new Error(`invalid color '${colorName}'`)
         }
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-        cssColorTheme[colorName as Color] = colorValue
+        CSS_COLOR_THEME[colorName as Color] = colorValue
     }
 }
 
@@ -344,7 +343,7 @@ export function cssStyle(
     let hidden = false
     let inverse = false
     const currentColor =
-        textColor === undefined ? 'currentColor' : cssColorTheme[textColor]
+        textColor === undefined ? 'currentColor' : CSS_COLOR_THEME[textColor]
 
     let cssStyles = ''
     for (const fontStyle of fontStyles ?? []) {
@@ -386,8 +385,8 @@ export function cssStyle(
             backgroundColor === undefined
                 ? invert(currentColor, dim)
                 : dim
-                  ? dimColor(cssColorTheme[backgroundColor])
-                  : cssColorTheme[backgroundColor]
+                  ? dimColor(CSS_COLOR_THEME[backgroundColor])
+                  : CSS_COLOR_THEME[backgroundColor]
         cssStyles += `color: ${invertColor};`
     } else if (dim) {
         cssStyles += `color: ${dimColor(currentColor)};`
@@ -402,11 +401,11 @@ export function cssStyle(
             textColor === undefined
                 ? invert(currentColor, dim)
                 : dim
-                  ? dimColor(cssColorTheme[textColor])
-                  : cssColorTheme[textColor]
+                  ? dimColor(CSS_COLOR_THEME[textColor])
+                  : CSS_COLOR_THEME[textColor]
         cssStyles += `background: ${invertColor};`
     } else if (backgroundColor !== undefined) {
-        const currentBackground = cssColorTheme[backgroundColor]
+        const currentBackground = CSS_COLOR_THEME[backgroundColor]
         if (dim) {
             cssStyles += `background: ${dimColor(currentBackground)};`
         } else {
@@ -560,9 +559,11 @@ const consoleLog: Logger = (function () {
 })()
 
 export function log(...text: (StyledText | StyledText[])[]): void {
-    if ('ANSI' === 'ANSI') {
+    if (RENDER_TARGET === 'ANSI') {
         consoleLog(renderAnsi(...text))
-    } else {
+    } else if (RENDER_TARGET === 'Web') {
         consoleLog(...renderWeb(...text))
+    } else {
+        throw new Error(`unsupported renderTarget='${RENDER_TARGET}'`)
     }
 }
