@@ -1,4 +1,4 @@
-export type RenderTarget = 'ANSI' | 'Web'
+export type RenderTarget = 'ANSI' | 'WEB'
 export type ColorSupport =
     | 'none' // 0 colors
     | 'basic' // 16 colors

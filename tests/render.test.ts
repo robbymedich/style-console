@@ -8,6 +8,8 @@ import {
 } from '../src/options'
 import { style } from '../src/style'
 import {
+    setColorSupport,
+    getColorSupport,
     stripAnsi,
     renderAnsi,
     cssStyle,
@@ -538,6 +540,52 @@ describe('full styled text', () => {
             'font-weight: bold;color: blue;background: red;text-decoration: line-through;',
             'font-weight: bold;font-style: italic;background: red;',
         ])
+    })
+})
+
+
+describe('color support', () => {
+    test('none', () => {
+        const trueColorSupport = getColorSupport()
+        setColorSupport('none')
+
+        // renderTarget="ANSI"
+        expect(
+            renderAnsiWrapped([
+                { text: 'hello', textColor: 'blue', fontStyles: ['bold'] },
+                {
+                    text: ' ',
+                    textColor: 'blue',
+                    backgroundColor: 'red',
+                    fontStyles: ['bold', 'strikethrough'],
+                },
+                {
+                    text: 'world',
+                    backgroundColor: 'red',
+                    fontStyles: ['bold', 'italic'],
+                },
+            ]),
+        ).toEqual('hello world')
+
+        // renderTarget="WEB"
+        expect(
+            renderWebWrapped([
+                { text: 'hello', textColor: 'blue', fontStyles: ['bold'] },
+                {
+                    text: ' ',
+                    textColor: 'blue',
+                    backgroundColor: 'red',
+                    fontStyles: ['bold', 'strikethrough'],
+                },
+                {
+                    text: 'world',
+                    backgroundColor: 'red',
+                    fontStyles: ['bold', 'italic'],
+                },
+            ]),
+        ).toEqual(['hello world'])
+
+        setColorSupport(trueColorSupport)
     })
 })
 

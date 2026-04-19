@@ -18,6 +18,10 @@ export { indent, dedent } from './spacing.js'
 export { colors, backgroundColors, fontStyles } from './options.js'
 export { style } from './style.js'
 export {
+    setColorSupport,
+    setRenderTarget,
+    getColorSupport,
+    getRenderTarget,
     colorThemes,
     setAnsiColors,
     setCssColors,

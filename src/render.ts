@@ -4,8 +4,59 @@ import type { RenderTarget, ColorSupport } from './detect.js'
 import { colorOption, fontStyleOption, colors } from './options.js'
 import { detectRenderTarget, detectColorSupport } from './detect.js'
 
-const RENDER_TARGET: RenderTarget = detectRenderTarget()
-const COLOR_SUPPORT: ColorSupport = detectColorSupport()
+let RENDER_TARGET: RenderTarget = detectRenderTarget()
+let COLOR_SUPPORT: ColorSupport = detectColorSupport()
+
+/**
+ * Set the default render target for the `log` function. Allows for control on
+ * if styled text is rendered to an ANSI styled terminal string or CSS styled
+ * arguments to pass into console.log.
+ *
+ * If running server side, you likley want this to be set to "ANSI". If running
+ * in a Chromium browser, you can probably use either "ANSI" (offers the best
+ * performance) or "WEB" (offers the most flexible output). Most other browsers
+ * only support styling with the "WEB" option.
+ *
+ * By default the render target is automatically detected and this global
+ * setting does not typically need to be modified.
+ *
+ * @param target - Either "ANSI" or "WEB".
+ */
+export function setRenderTarget(target: RenderTarget): void {
+    RENDER_TARGET = target.toUpperCase() as RenderTarget
+}
+
+/** Get the current render target, see `setRenderTarget` for details */
+export function getRenderTarget(): RenderTarget {
+    return RENDER_TARGET
+}
+
+/**
+ * Set the default color support for the rendering of styled text.
+ *
+ * For "ANSI" render targets, a value of "basic" and "256color" both result in
+ * the same final output using colors predetermined by the terminal the string
+ * is displayed in. However a value of "truecolor" allows for the usage of color
+ * themes and the rendered output will respect the `setColors` function. A value
+ * of "none" removes all styling from the text and returns a plain text string.
+ *
+ * For "WEB" render targets, a value of "none" removes all styling from the text
+ * and returns a plain text string. All other color support values result in the
+ * same rendered output which acts like "truecolor" with "ANSI" targets.
+ *
+ * By default color support is automatically detected and this global setting
+ * does not typically need to be modified.
+ *
+ * @param target - Either "none", "basic", "256color", or "truecolor"
+ */
+export function setColorSupport(support: ColorSupport): void {
+    COLOR_SUPPORT = support.toLowerCase() as ColorSupport
+}
+
+/** Get the current color support value, see `setColorSupport` for details */
+export function getColorSupport(): ColorSupport {
+    return COLOR_SUPPORT
+}
 
 /** CSS Color(s), can be used to change styling with setCssColors */
 export const colorThemes: {
@@ -164,6 +215,29 @@ export function concatWs(
 }
 
 /**
+ * Renders styled text into a single plain text string (no-style).
+ *
+ * Styled components of the text are removed, so that only the unstyled content
+ * is included in the returned value.
+ *
+ * @param text - A single part or list of parts to render.
+ * @returns An unstyled text string with the content from the styled text.
+ */
+function renderNoStyle(text: (StyledText | StyledText[])[]): string {
+    let final = ''
+    for (const part of text) {
+        if (Array.isArray(part)) {
+            for (const subPart of part) {
+                final += subPart.text
+            }
+        } else {
+            final += part.text
+        }
+    }
+    return final
+}
+
+/**
  * Checks if two font style lists are equal to one another,
  * `lhs === rhs` by value.
  *
@@ -266,8 +340,8 @@ export function renderAnsi(...text: (StyledText | StyledText[])[]): string {
     // seprate function cleanly wraps all set and unset style strings to the
     // text at once, not adding this in right now since performance is great
     // as is and this is an edge case
-    if (text.length === 0) {
-        return ''
+    if (COLOR_SUPPORT === 'none') {
+        return renderNoStyle(text)
     }
     const output: StyledText = { text: '' }
 
@@ -517,6 +591,9 @@ function renderWebInner(
  * @returns Arguments ready to spread into `console.log(...renderWeb(text))`.
  */
 export function renderWeb(...text: (StyledText | StyledText[])[]): string[] {
+    if (COLOR_SUPPORT === 'none') {
+        return [renderNoStyle(text)]
+    }
     const output: StyledText = { text: '' }
     const args: string[] = [''] // add placeholder for final string
 
@@ -561,7 +638,7 @@ const consoleLog: Logger = (function () {
 export function log(...text: (StyledText | StyledText[])[]): void {
     if (RENDER_TARGET === 'ANSI') {
         consoleLog(renderAnsi(...text))
-    } else if (RENDER_TARGET === 'Web') {
+    } else if (RENDER_TARGET === 'WEB') {
         consoleLog(...renderWeb(...text))
     } else {
         throw new Error(`unsupported renderTarget='${RENDER_TARGET}'`)
