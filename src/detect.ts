@@ -10,5 +10,5 @@ export function detectRenderTarget(): RenderTarget {
 }
 
 export function detectColorSupport(): ColorSupport {
-    return '256color'
+    return 'truecolor'
 }

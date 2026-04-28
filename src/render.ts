@@ -4,8 +4,8 @@ import type { RenderTarget, ColorSupport } from './detect.js'
 import { colorOption, fontStyleOption, colors } from './options.js'
 import { detectRenderTarget, detectColorSupport } from './detect.js'
 
+/** Describes which renderer should be used when logging styled text */
 let RENDER_TARGET: RenderTarget = detectRenderTarget()
-let COLOR_SUPPORT: ColorSupport = detectColorSupport()
 
 /**
  * Set the default render target for the `log` function. Allows for control on
@@ -23,6 +23,7 @@ let COLOR_SUPPORT: ColorSupport = detectColorSupport()
  * @param target - Either "ANSI" or "WEB".
  */
 export function setRenderTarget(target: RenderTarget): void {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     RENDER_TARGET = target.toUpperCase() as RenderTarget
 }
 
@@ -30,6 +31,12 @@ export function setRenderTarget(target: RenderTarget): void {
 export function getRenderTarget(): RenderTarget {
     return RENDER_TARGET
 }
+
+/**
+ * Describes how well colors are supported when displaying in the current
+ * evironment.
+ */
+let COLOR_SUPPORT: ColorSupport = detectColorSupport()
 
 /**
  * Set the default color support for the rendering of styled text.
@@ -50,6 +57,7 @@ export function getRenderTarget(): RenderTarget {
  * @param target - Either "none", "basic", "256color", or "truecolor"
  */
 export function setColorSupport(support: ColorSupport): void {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     COLOR_SUPPORT = support.toLowerCase() as ColorSupport
 }
 
@@ -58,7 +66,7 @@ export function getColorSupport(): ColorSupport {
     return COLOR_SUPPORT
 }
 
-/** CSS Color(s), can be used to change styling with setCssColors */
+/** CSS Color(s), can be used to change styling with setColors */
 export const colorThemes: {
     default: Record<Color, string>
     chromeLight: Record<Color, string>
@@ -120,45 +128,63 @@ export const colorThemes: {
     },
 }
 
+/** Indicates if an ANSI Color Theme has been set, speed up `if` checks */
+let HAS_ANSI_COLOR_THEME = false
+
 /** Default ANSI color theme used when rendering with truecolor terminals. */
-const ANSI_COLOR_THEME: Record<Color, string> = colorThemes.default
+const ANSI_COLOR_THEME: {
+    [key in Color]?: { text: string; background: string }
+} = {}
 
 /** Default CSS color theme used when rendering for browser consoles. */
 const CSS_COLOR_THEME: Record<Color, string> = colorThemes.default
 
 /**
- * Overrides one or more colors in the ANSI truecolor terminal theme.
+ * Override one or more colors used when rendering styled text.
  *
  * @param options - Partial or full map of color names to CSS color values.
+ * @param target - Specify which render target the colors should apply to.
  */
-export function setAnsiColors(options: Record<Color, string>): void {
+export function setColors(
+    options: Partial<Record<Color, string>>,
+    target?: RenderTarget,
+): void {
+    const colorTarget = target ?? RENDER_TARGET
     for (const [colorName, colorValue] of Object.entries(options)) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         if (!colors.includes(colorName as Color)) {
             throw new Error(`invalid color '${colorName}'`)
         }
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-        ANSI_COLOR_THEME[colorName as Color] = colorValue
-    }
-}
-
-/**
- * Overrides one or more colors in the browser-console CSS theme.
- *
- * @param options - Partial or full map of color names to CSS color values.
- */
-export function setCssColors(options: Record<Color, string>): void {
-    for (const [colorName, colorValue] of Object.entries(options)) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-        if (!colors.includes(colorName as Color)) {
-            throw new Error(`invalid color '${colorName}'`)
+        if (colorTarget === 'ANSI') {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            const [r, g, b] = hexToRgb(colorValue)
+            ANSI_COLOR_THEME[colorName as Color] = {
+                text: `\x1B[38;2;${r};${g};${b}m`,
+                background: `\x1B[48;2;${r};${g};${b}m`,
+            }
+            HAS_ANSI_COLOR_THEME = true
+        } else if (colorTarget === 'WEB') {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            CSS_COLOR_THEME[colorName as Color] = colorValue
+        } else {
+            throw new Error(
+                `invalid RenderTarget='${colorTarget}' expected 'WEB' or 'ANSI'`,
+            )
         }
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-        CSS_COLOR_THEME[colorName as Color] = colorValue
     }
 }
 
-// TODO: Make set colors funciton generic
+// TODO: add doc string
+function hexToRgb(color: string): [number, number, number] {
+    if (!color.match(/^#[0-9a-fA-F]{6}$/)) {
+        throw new Error('invalid hex color format, expected a 6-digit code')
+    }
+    const r = Number.parseInt(color.slice(1, 3), 16)
+    const g = Number.parseInt(color.slice(3, 5), 16)
+    const b = Number.parseInt(color.slice(5, 7), 16)
+
+    return [r, g, b]
+}
 
 /**
  * Merge `StyledText` arguments into a single flattened list.
@@ -274,6 +300,7 @@ export function stripAnsi(text: string): string {
  * Core render logic for an ANSI-styled string. Mutates output as each part is
  * processed in the larger `renderAnsi` function.
  */
+// eslint-disable-next-line complexity
 function renderAnsiInner(output: StyledText, part: StyledText): void {
     if (part.textColor !== output.textColor) {
         if (output.textColor !== undefined) {
@@ -281,7 +308,12 @@ function renderAnsiInner(output: StyledText, part: StyledText): void {
         }
         output.textColor = part.textColor
         if (output.textColor !== undefined) {
-            output.text += colorOption[output.textColor].text.set
+            const defaultColor = colorOption[output.textColor].text.set
+            const ansiColor: string =
+                COLOR_SUPPORT === 'truecolor' && HAS_ANSI_COLOR_THEME
+                    ? (ANSI_COLOR_THEME[output.textColor]?.text ?? defaultColor)
+                    : defaultColor
+            output.text += ansiColor
         }
     }
     if (part.backgroundColor !== output.backgroundColor) {
@@ -290,7 +322,14 @@ function renderAnsiInner(output: StyledText, part: StyledText): void {
         }
         output.backgroundColor = part.backgroundColor
         if (output.backgroundColor !== undefined) {
-            output.text += colorOption[output.backgroundColor].background.set
+            const defaultColor =
+                colorOption[output.backgroundColor].background.set
+            const ansiColor: string =
+                COLOR_SUPPORT === 'truecolor' && HAS_ANSI_COLOR_THEME
+                    ? (ANSI_COLOR_THEME[output.backgroundColor]?.background ??
+                      defaultColor)
+                    : defaultColor
+            output.text += ansiColor
         }
     }
     if (!equal(part.fontStyles, output.fontStyles)) {
@@ -305,7 +344,6 @@ function renderAnsiInner(output: StyledText, part: StyledText): void {
         }
         if (oldStyles !== undefined) {
             for (const fontStyle of oldStyles) {
-                // eslint-disable-next-line max-depth
                 if (fontStyleFlags[fontStyle] === true) {
                     fontStyleFlags[fontStyle] = false
                 } else {
@@ -315,7 +353,6 @@ function renderAnsiInner(output: StyledText, part: StyledText): void {
         }
         if (output.fontStyles !== undefined) {
             for (const fontStyle of output.fontStyles) {
-                // eslint-disable-next-line max-depth
                 if (fontStyleFlags[fontStyle] === true) {
                     output.text += fontStyleOption[fontStyle as FontStyle].set
                 }
@@ -334,7 +371,6 @@ function renderAnsiInner(output: StyledText, part: StyledText): void {
  * @param text - A single part or list of parts to render.
  * @returns A string containing ANSI escape sequences.
  */
-// eslint-disable-next-line complexity
 export function renderAnsi(...text: (StyledText | StyledText[])[]): string {
     // performance can be improved by about 40% for non-list arguments if a
     // seprate function cleanly wraps all set and unset style strings to the
@@ -511,6 +547,7 @@ export function cssStyle(
         if (doubleunderline) {
             textDecoration += ' underline double' // must be last to add
         }
+        // eslint-disable-next-line prefer-template
         cssStyles += textDecoration + ';'
     }
 
@@ -626,6 +663,7 @@ type Logger = (...args: unknown[]) => void
 
 const consoleLog: Logger = (function () {
     const globalConsole = (globalThis as { console?: unknown }).console
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     const maybeLog = (globalConsole as { log?: Logger }).log?.bind(
         globalConsole,
     )

@@ -13,7 +13,7 @@ import {
     stripAnsi,
     renderAnsi,
     cssStyle,
-    setCssColors,
+    setColors,
     stripWeb,
     renderWeb,
     concat,
@@ -26,7 +26,7 @@ import type { StyledText } from '../src/style'
 const namedColors = Object.fromEntries(
     colors.map((color) => [color, color]),
 ) as Record<Color, Color>
-setCssColors(namedColors)
+setColors(namedColors, 'WEB')
 
 describe('fontStyle equal', () => {
     test('undefined or empty', () => {
@@ -542,7 +542,6 @@ describe('full styled text', () => {
         ])
     })
 })
-
 
 describe('color support', () => {
     test('none', () => {
